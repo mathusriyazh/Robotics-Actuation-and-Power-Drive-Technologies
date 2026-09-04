@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Isolated Flyback Converter — 48V Input</title>
+<style>
+  :root{
+    --bg:#0f1420; --panel:#161d2e; --wire:#4a5570; --wire-on:#38bdf8; --node:#e2e8f0;
+    --accent:#f59e0b; --accent2:#22c55e; --text:#e2e8f0; --muted:#8b93a7;
+    --switch-on:#22c55e; --switch-off:#ef4444; --volt:#38bdf8; --curr:#f59e0b; --curr2:#a78bfa;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;padding:20px;}
+  .wrap{max-width:960px;margin:0 auto;}
+  h1{font-size:1.3rem;margin:0 0 4px 0;font-weight:600;}
+  .sub{color:var(--muted);font-size:0.9rem;margin-bottom:16px;}
+  .panel{background:var(--panel);border-radius:14px;padding:16px;margin-bottom:14px;border:1px solid #232b40;}
+  .controls{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:6px;}
+  button{background:#1f2740;color:var(--text);border:1px solid #2e3a5c;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;transition:background .15s;}
+  button:hover{background:#2a3454;}
+  button.active{background:var(--accent);color:#1a1200;border-color:var(--accent);}
+  .ctrl-item{display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--muted);}
+  input[type=range]{width:150px;accent-color:var(--accent);}
+  .ctrl-item .readout{color:var(--text);font-weight:700;min-width:52px;display:inline-block;}
+  .phase-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:0.8rem;font-weight:700;letter-spacing:.3px;}
+  .phase-charge{background:rgba(34,197,94,.15);color:var(--switch-on);border:1px solid rgba(34,197,94,.4);}
+  .phase-discharge{background:rgba(245,158,11,.15);color:var(--accent);border:1px solid rgba(245,158,11,.4);}
+  .readout-strip{display:flex;gap:22px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid #232b40;font-size:0.85rem;}
+  .readout-strip .item{display:flex;flex-direction:column;gap:2px;}
+  .readout-strip .item .k{color:var(--muted);font-size:0.75rem;}
+  .readout-strip .item .v{font-weight:700;font-size:1rem;}
+  .v.vin{color:#e2e8f0;} .v.vout{color:var(--volt);} .v.iout{color:var(--curr);} .v.duty{color:var(--accent2);}
+  svg{width:100%;height:auto;display:block;}
+  .lbl{font-size:13px;fill:var(--text);font-weight:600;}
+  .lbl-sub{font-size:11px;fill:var(--muted);}
+  .val{font-size:12px;fill:var(--wire-on);font-weight:700;}
+  .dot{fill:#38bdf8;filter:drop-shadow(0 0 4px #38bdf8);}
+  .dot2{fill:#a78bfa;filter:drop-shadow(0 0 4px #a78bfa);}
+  .explain{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;}
+  .explain .box{background:#111827;border-radius:10px;padding:12px 14px;border:1px solid #232b40;font-size:0.85rem;line-height:1.5;}
+  .explain .box h3{margin:0 0 6px 0;font-size:0.85rem;}
+  .explain .box.on{border-color:rgba(34,197,94,.4);}
+  .explain .box.off{border-color:rgba(245,158,11,.4);}
+  .explain .box h3.on{color:var(--switch-on);}
+  .explain .box.off h3{color:var(--accent);}
+  .gtitle{font-size:0.85rem;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;}
+  .gtitle .swatch{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle;}
+  .note{font-size:0.8rem;color:var(--muted);margin-top:10px;line-height:1.5;}
+  @media (max-width:640px){.explain{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Isolated Flyback Converter — 48V Input</h1>
+  <div class="sub">Vin = 48V fixed · galvanic isolation via transformer · Vout = Vin · N · D/(1−D), where N = turns ratio Ns/Np</div>
+
+  <div class="panel">
+    <div class="controls">
+      <button id="playBtn" class="active">⏸ Pause</button>
+      <div class="ctrl-item">Speed<input type="range" id="speed" min="0.3" max="2.5" step="0.1" value="1"></div>
+      <div class="ctrl-item">PWM Duty Ratio (D)<input type="range" id="duty" min="0.1" max="0.7" step="0.01" value="0.4"><span class="readout" id="dutyReadout">40%</span></div>
+      <div class="ctrl-item">Turns Ratio N = Ns/Np<input type="range" id="turns" min="0.2" max="3" step="0.05" value="1"><span class="readout" id="turnsReadout">1.00</span></div>
+      <div class="ctrl-item">Load R (Ω)<input type="range" id="loadR" min="5" max="60" step="1" value="20"><span class="readout" id="loadRReadout">20 Ω</span></div>
+      <span id="phaseBadge" class="phase-badge phase-charge">SWITCH CLOSED · PRIMARY ENERGIZING</span>
+    </div>
+
+    <svg id="circuit" viewBox="0 0 860 300" xmlns="http://www.w3.org/2000/svg">
+      <!-- Primary source -->
+      <g>
+        <line x1="40" y1="80" x2="40" y2="220" stroke="var(--wire)" stroke-width="3"/>
+        <line x1="25" y1="110" x2="55" y2="110" stroke="var(--wire)" stroke-width="4"/>
+        <line x1="30" y1="120" x2="50" y2="120" stroke="var(--wire)" stroke-width="2"/>
+        <line x1="25" y1="185" x2="55" y2="185" stroke="var(--wire)" stroke-width="4"/>
+        <line x1="30" y1="195" x2="50" y2="195" stroke="var(--wire)" stroke-width="2"/>
+        <text x="40" y="150" text-anchor="middle" class="lbl">Vin</text>
+        <text x="40" y="165" text-anchor="middle" class="lbl-sub">48V</text>
+      </g>
+
+      <line x1="40" y1="80" x2="130" y2="80" stroke="var(--wire)" stroke-width="3"/>
+      <g id="switchSymbol">
+        <circle cx="130" cy="80" r="4" fill="var(--node)"/>
+        <line id="switchLever" x1="130" y1="80" x2="170" y2="55" stroke="var(--switch-on)" stroke-width="3.5" stroke-linecap="round"/>
+        <circle cx="195" cy="80" r="4" fill="var(--node)"/>
+      </g>
+      <text x="160" y="42" text-anchor="middle" class="lbl">S</text>
+      <text x="160" y="100" text-anchor="middle" class="lbl-sub">PWM switch</text>
+      <line x1="195" y1="80" x2="300" y2="80" stroke="var(--wire)" stroke-width="3"/>
+
+      <!-- Primary winding -->
+      <circle cx="300" cy="72" r="3" fill="var(--accent)"/>
+      <path d="M300,80 q18,10 0,20 q18,10 0,20 q18,10 0,20 q18,10 0,20" fill="none" stroke="var(--wire)" stroke-width="3"/>
+      <line x1="300" y1="160" x2="300" y2="220" stroke="var(--wire)" stroke-width="3"/>
+      <text x="270" y="130" text-anchor="middle" class="lbl">Np</text>
+
+      <!-- Core -->
+      <line x1="330" y1="65" x2="330" y2="235" stroke="var(--muted)" stroke-width="2"/>
+      <line x1="340" y1="65" x2="340" y2="235" stroke="var(--muted)" stroke-width="2"/>
+
+      <!-- Secondary winding -->
+      <path d="M370,80 q18,10 0,20 q18,10 0,20 q18,10 0,20 q18,10 0,20" fill="none" stroke="var(--wire)" stroke-width="3"/>
+      <line x1="370" y1="160" x2="370" y2="220" stroke="var(--wire)" stroke-width="3"/>
+      <circle cx="370" cy="228" r="3" fill="var(--accent)"/>
+      <text x="400" y="130" text-anchor="middle" class="lbl">Ns</text>
+
+      <!-- Isolation barrier -->
+      <line x1="355" y1="20" x2="355" y2="280" stroke="var(--accent2)" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.55"/>
+      <text x="355" y="15" text-anchor="middle" class="lbl-sub" fill="#22c55e">isolation barrier</text>
+
+      <!-- primary bottom rail (isolated from secondary) -->
+      <line x1="40" y1="220" x2="300" y2="220" stroke="var(--wire)" stroke-width="3"/>
+
+      <!-- secondary top wire to diode -->
+      <line x1="370" y1="80" x2="430" y2="80" stroke="var(--wire)" stroke-width="3"/>
+      <g id="diodeSymbol">
+        <polygon points="430,68 430,92 465,80" fill="var(--wire)" id="diodeTri"/>
+        <line x1="465" y1="68" x2="465" y2="92" stroke="var(--wire)" stroke-width="3" id="diodeBar"/>
+      </g>
+      <text x="447" y="50" text-anchor="middle" class="lbl">D</text>
+      <line x1="465" y1="80" x2="540" y2="80" stroke="var(--wire)" stroke-width="3"/>
+
+      <!-- secondary bottom rail (isolated from primary) -->
+      <line x1="370" y1="220" x2="800" y2="220" stroke="var(--wire)" stroke-width="3"/>
+
+      <!-- Capacitor -->
+      <line x1="540" y1="80" x2="540" y2="150" stroke="var(--wire)" stroke-width="3"/>
+      <line x1="520" y1="150" x2="560" y2="150" stroke="var(--wire)" stroke-width="4"/>
+      <line x1="520" y1="160" x2="560" y2="160" stroke="var(--wire)" stroke-width="4"/>
+      <line x1="540" y1="160" x2="540" y2="220" stroke="var(--wire)" stroke-width="3"/>
+      <text x="540" y="140" text-anchor="middle" class="lbl">C</text>
+
+      <line x1="540" y1="80" x2="680" y2="80" stroke="var(--wire)" stroke-width="3"/>
+      <line x1="680" y1="80" x2="680" y2="220" stroke="var(--wire)" stroke-width="3"/>
+
+      <g>
+        <rect x="662" y="120" width="36" height="60" rx="4" fill="none" stroke="var(--wire)" stroke-width="3"/>
+        <text x="680" y="115" text-anchor="middle" class="lbl">R</text>
+        <text x="680" y="200" text-anchor="middle" class="lbl-sub">Load</text>
+      </g>
+
+      <text x="680" y="245" text-anchor="middle" class="lbl">Vout</text>
+      <text x="680" y="260" text-anchor="middle" class="val" id="voutLabel">32.0 V</text>
+
+      <circle class="dot" r="4" id="dotA"/>
+      <circle class="dot" r="4" id="dotB"/>
+      <circle class="dot2" r="4" id="dotC"/>
+      <circle class="dot2" r="4" id="dotD"/>
+    </svg>
+
+    <div class="readout-strip">
+      <div class="item"><span class="k">Vin</span><span class="v vin">48.0 V</span></div>
+      <div class="item"><span class="k">Duty Ratio D</span><span class="v duty" id="dutyBig">40%</span></div>
+      <div class="item"><span class="k">Turns Ratio N</span><span class="v duty" id="turnsBig">1.00</span></div>
+      <div class="item"><span class="k">Vout = Vin·N·D/(1−D)</span><span class="v vout" id="voutBig">32.0 V</span></div>
+      <div class="item"><span class="k">Iout = Vout/R</span><span class="v iout" id="ioutBig">1.60 A</span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="gtitle"><span><span class="swatch" style="background:var(--volt);"></span>Primary Current (Ip)</span><span>flows only while switch is ON</span></div>
+    <svg id="ipgraph" viewBox="0 0 860 110" xmlns="http://www.w3.org/2000/svg">
+      <line x1="40" y1="95" x2="830" y2="95" stroke="var(--wire)" stroke-width="1.5"/>
+      <line x1="40" y1="10" x2="40" y2="95" stroke="var(--wire)" stroke-width="1.5"/>
+      <text x="36" y="20" text-anchor="end" class="lbl-sub" id="ipMaxLabel">3A</text>
+      <text x="36" y="97" text-anchor="end" class="lbl-sub">0</text>
+      <polyline id="ipLine" points="" fill="none" stroke="var(--volt)" stroke-width="2.5"/>
+      <line id="ipCursor" x1="40" y1="10" x2="40" y2="95" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="3,3"/>
+    </svg>
+  </div>
+
+  <div class="panel">
+    <div class="gtitle"><span><span class="swatch" style="background:var(--curr2);"></span>Secondary Current (Is)</span><span>flows only while switch is OFF</span></div>
+    <svg id="isgraph" viewBox="0 0 860 110" xmlns="http://www.w3.org/2000/svg">
+      <line x1="40" y1="95" x2="830" y2="95" stroke="var(--wire)" stroke-width="1.5"/>
+      <line x1="40" y1="10" x2="40" y2="95" stroke="var(--wire)" stroke-width="1.5"/>
+      <text x="36" y="20" text-anchor="end" class="lbl-sub" id="isMaxLabel">3A</text>
+      <text x="36" y="97" text-anchor="end" class="lbl-sub">0</text>
+      <polyline id="isLine" points="" fill="none" stroke="var(--curr2)" stroke-width="2.5"/>
+      <line id="isCursor" x1="40" y1="10" x2="40" y2="95" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="3,3"/>
+    </svg>
+  </div>
+
+  <div class="explain">
+    <div class="box on">
+      <h3 class="on">Phase 1 — Switch ON (primary energizing)</h3>
+      Vin drives current through the primary winding only. Energy builds up as a magnetic field in the core. Because of the winding polarity (dot convention), the secondary diode is reverse-biased — no current flows on the secondary side, and no energy crosses to the output yet. The capacitor alone supplies the load.
+    </div>
+    <div class="box off">
+      <h3>Phase 2 — Switch OFF (secondary discharging)</h3>
+      The primary current is cut off. The core's stored energy reverses the secondary winding's voltage, forward-biasing the diode — current now flows only on the secondary side, transferring the stored energy to the output capacitor and load. Primary and secondary current never flow at the same time.
+    </div>
+  </div>
+  <div class="note">The dashed green line is the isolation barrier — there is no direct wire between primary and secondary; all energy crosses the core magnetically. This is what lets the output float at a different voltage/ground reference than the input. Current ripple shapes are drawn for visual clarity (discontinuous-mode style), not solved from exact L and switching-frequency values.</div>
+</div>
+
+<script>
+const playBtn = document.getElementById('playBtn');
+const speedSlider = document.getElementById('speed');
+const dutySlider = document.getElementById('duty');
+const turnsSlider = document.getElementById('turns');
+const loadRSlider = document.getElementById('loadR');
+const dutyReadout = document.getElementById('dutyReadout');
+const turnsReadout = document.getElementById('turnsReadout');
+const loadRReadout = document.getElementById('loadRReadout');
+const badge = document.getElementById('phaseBadge');
+const lever = document.getElementById('switchLever');
+const diodeTri = document.getElementById('diodeTri');
+const voutLabel = document.getElementById('voutLabel');
+const dutyBig = document.getElementById('dutyBig');
+const turnsBig = document.getElementById('turnsBig');
+const voutBig = document.getElementById('voutBig');
+const ioutBig = document.getElementById('ioutBig');
+const ipMaxLabel = document.getElementById('ipMaxLabel');
+const isMaxLabel = document.getElementById('isMaxLabel');
+
+const ipLine = document.getElementById('ipLine');
+const ipCursor = document.getElementById('ipCursor');
+const isLine = document.getElementById('isLine');
+const isCursor = document.getElementById('isCursor');
+
+const VIN = 48;
+let playing = true;
+let speed = 1;
+let t = 0;
+const PERIOD = 3000;
+let DUTY = 0.4;
+let N = 1.0;
+let R = 20;
+
+let lastTime = null;
+
+function vout(){ return VIN * N * DUTY / (1 - DUTY); }
+function iout(){ return vout() / R; }
+
+function updateReadouts(){
+  const vo = vout();
+  const io = iout();
+  dutyReadout.textContent = Math.round(DUTY*100) + '%';
+  turnsReadout.textContent = N.toFixed(2);
+  loadRReadout.textContent = R + ' \u03A9';
+  dutyBig.textContent = Math.round(DUTY*100) + '%';
+  turnsBig.textContent = N.toFixed(2);
+  voutBig.textContent = vo.toFixed(1) + ' V';
+  ioutBig.textContent = io.toFixed(2) + ' A';
+  voutLabel.textContent = vo.toFixed(1) + ' V';
+}
+
+function buildGraphs(){
+  const cycles = 4;
+  const w = 790, x0 = 40, y0 = 95, h = 80;
+  const io = iout();
+  const ipPeak = Math.max(2 * io * N, 0.3);
+  const isPeak = Math.max(ipPeak / N, 0.3);
+  ipMaxLabel.textContent = ipPeak.toFixed(1) + 'A';
+  isMaxLabel.textContent = isPeak.toFixed(1) + 'A';
+
+  const ipPts = [], isPts = [];
+  const steps = 400;
+  for(let i=0;i<=steps;i++){
+    const frac = i/steps;
+    const cyclePos = (frac*cycles) % 1;
+    const isOn = cyclePos < DUTY;
+    const x = x0 + frac*w;
+
+    let ipVal, isVal;
+    if(isOn){
+      ipVal = ipPeak * (cyclePos/DUTY);
+      isVal = 0;
+    } else {
+      ipVal = 0;
+      isVal = isPeak * (1 - (cyclePos-DUTY)/(1-DUTY));
+    }
+    ipPts.push(x.toFixed(1)+','+(y0-(ipVal/ipPeak)*h).toFixed(1));
+    isPts.push(x.toFixed(1)+','+(y0-(isVal/isPeak)*h).toFixed(1));
+  }
+  ipLine.setAttribute('points', ipPts.join(' '));
+  isLine.setAttribute('points', isPts.join(' '));
+}
+
+function pathPoint(pathEl, frac){ const len = pathEl.getTotalLength(); return pathEl.getPointAtLength(frac*len); }
+function makePath(d){ const p = document.createElementNS('http://www.w3.org/2000/svg','path'); p.setAttribute('d', d); p.setAttribute('fill','none'); return p; }
+const svg = document.getElementById('circuit');
+// Primary loop only
+const primaryPath = makePath('M40,80 L130,80 L195,80 L300,80 q18,10 0,20 q18,10 0,20 q18,10 0,20 q18,10 0,20 L300,220 L40,220 L40,80');
+// Secondary loop only
+const secondaryPath = makePath('M370,220 L370,160 q18,10 0,-20 M370,80 q18,10 0,20 q18,10 0,20 q18,10 0,20 q18,10 0,20 L370,80 L430,80 L465,80 L540,80 L680,80 L680,220 L370,220');
+svg.appendChild(primaryPath);
+svg.appendChild(secondaryPath);
+primaryPath.style.visibility='hidden';
+secondaryPath.style.visibility='hidden';
+
+const dotA = document.getElementById('dotA');
+const dotB = document.getElementById('dotB');
+const dotC = document.getElementById('dotC');
+const dotD = document.getElementById('dotD');
+function setDot(dot, pathEl, frac){ const pt = pathPoint(pathEl, frac % 1); dot.setAttribute('cx', pt.x); dot.setAttribute('cy', pt.y); }
+
+function frame(now){
+  if(lastTime===null) lastTime = now;
+  const dt = now - lastTime;
+  lastTime = now;
+  if(playing){ t += (dt / PERIOD) * speed; t = t % 1; }
+
+  const isOn = t < DUTY;
+  if(isOn){
+    lever.setAttribute('x2','170'); lever.setAttribute('y2','55'); lever.setAttribute('stroke','var(--switch-on)');
+    diodeTri.setAttribute('fill','#3a4257');
+    badge.textContent = 'SWITCH CLOSED · PRIMARY ENERGIZING'; badge.className = 'phase-badge phase-charge';
+    dotA.setAttribute('opacity','1'); dotB.setAttribute('opacity','1');
+    dotC.setAttribute('opacity','0'); dotD.setAttribute('opacity','0');
+  } else {
+    lever.setAttribute('x2','195'); lever.setAttribute('y2','80'); lever.setAttribute('stroke','var(--switch-off)');
+    diodeTri.setAttribute('fill','var(--wire-on)');
+    badge.textContent = 'SWITCH OPEN · SECONDARY DELIVERING'; badge.className = 'phase-badge phase-discharge';
+    dotA.setAttribute('opacity','0'); dotB.setAttribute('opacity','0');
+    dotC.setAttribute('opacity','1'); dotD.setAttribute('opacity','1');
+  }
+
+  if(isOn){
+    const localFrac = t/DUTY;
+    setDot(dotA, primaryPath, localFrac);
+    setDot(dotB, primaryPath, (localFrac+0.5)%1);
+  } else {
+    const localFrac = (t-DUTY)/(1-DUTY);
+    setDot(dotC, secondaryPath, localFrac);
+    setDot(dotD, secondaryPath, (localFrac+0.5)%1);
+  }
+
+  const gx = 40 + (t)*790;
+  ipCursor.setAttribute('x1', gx); ipCursor.setAttribute('x2', gx);
+  isCursor.setAttribute('x1', gx); isCursor.setAttribute('x2', gx);
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+playBtn.addEventListener('click', ()=>{
+  playing = !playing;
+  playBtn.textContent = playing ? '⏸ Pause' : '▶ Play';
+  playBtn.className = playing ? 'active' : '';
+});
+speedSlider.addEventListener('input', (e)=>{ speed = parseFloat(e.target.value); });
+dutySlider.addEventListener('input', (e)=>{ DUTY = parseFloat(e.target.value); updateReadouts(); buildGraphs(); });
+turnsSlider.addEventListener('input', (e)=>{ N = parseFloat(e.target.value); updateReadouts(); buildGraphs(); });
+loadRSlider.addEventListener('input', (e)=>{ R = parseFloat(e.target.value); updateReadouts(); buildGraphs(); });
+
+updateReadouts();
+buildGraphs();
+</script>
+</body>
+</html>

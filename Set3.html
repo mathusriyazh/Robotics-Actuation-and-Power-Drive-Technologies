@@ -1,0 +1,1521 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Power Electronics for Robotics - Set 3</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    margin: 0;
+    padding: 20px;
+    color: #222;
+}
+
+.container {
+    max-width: 1100px;
+    margin: auto;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 5px;
+    font-size: 28px;
+}
+
+h2 {
+    background: #e9eef5;
+    padding: 12px;
+    border-left: 5px solid #333;
+    margin-top: 30px;
+}
+
+.subtitle {
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 16px;
+}
+
+.student-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.student-details input {
+    padding: 10px;
+    border: 1px solid #aaa;
+    border-radius: 5px;
+    font-size: 15px;
+}
+
+.instructions {
+    background: #f8f8f8;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.question {
+    margin: 20px 0;
+    padding: 18px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.question-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.marks {
+    float: right;
+    background: #333;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+textarea {
+    width: 100%;
+    min-height: 90px;
+    padding: 10px;
+    font-size: 15px;
+    border: 1px solid #aaa;
+    border-radius: 6px;
+    resize: vertical;
+}
+
+.button-area {
+    text-align: center;
+    margin-top: 30px;
+}
+
+button {
+    padding: 12px 22px;
+    margin: 6px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.evaluate-btn {
+    background: #222;
+    color: white;
+}
+
+.answer-btn {
+    background: #555;
+    color: white;
+}
+
+.print-btn {
+    background: #777;
+    color: white;
+}
+
+button:hover {
+    opacity: 0.85;
+}
+
+#result {
+    margin-top: 30px;
+    display: none;
+}
+
+.result-summary {
+    background: #f1f1f1;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.total {
+    font-size: 28px;
+    font-weight: bold;
+    margin: 10px;
+}
+
+.percentage {
+    font-size: 20px;
+    margin: 10px;
+}
+
+.evaluation-item {
+    margin: 15px 0;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.correct {
+    border-left: 6px solid #2e7d32;
+    background: #f1f8f2;
+}
+
+.partial {
+    border-left: 6px solid #ef6c00;
+    background: #fff8ef;
+}
+
+.wrong {
+    border-left: 6px solid #c62828;
+    background: #fff3f3;
+}
+
+.not-attempted {
+    border-left: 6px solid #666;
+    background: #f5f5f5;
+}
+
+.status {
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.answer-key {
+    display: none;
+    margin-top: 30px;
+}
+
+.key-item {
+    padding: 15px;
+    margin: 10px 0;
+    background: #f5f5f5;
+    border-left: 4px solid #333;
+    border-radius: 5px;
+}
+
+.key-answer {
+    margin-top: 8px;
+    line-height: 1.6;
+}
+
+.score-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.score-table th,
+.score-table td {
+    border: 1px solid #aaa;
+    padding: 9px;
+    text-align: center;
+}
+
+.score-table th {
+    background: #eee;
+}
+
+.warning {
+    color: #333;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 10px;
+}
+
+@media(max-width:700px) {
+
+    .student-details {
+        grid-template-columns: 1fr;
+    }
+
+    .container {
+        padding: 15px;
+    }
+
+    .marks {
+        float: none;
+        display: inline-block;
+        margin-left: 5px;
+    }
+}
+
+@media print {
+
+    body {
+        background: white;
+        padding: 0;
+    }
+
+    .container {
+        box-shadow: none;
+        max-width: 100%;
+    }
+
+    .button-area {
+        display: none;
+    }
+
+    textarea {
+        border: 1px solid #000;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>POWER ELECTRONICS FOR ROBOTICS</h1>
+
+<div class="subtitle">
+    <strong>Set 3</strong>
+</div>
+
+<div class="student-details">
+
+    <input
+        type="text"
+        id="studentName"
+        placeholder="Student Name">
+
+    <input
+        type="text"
+        id="registerNo"
+        placeholder="Register Number">
+
+    <input
+        type="text"
+        id="className"
+        placeholder="Class / Section">
+
+    <input
+        type="text"
+        id="date"
+        placeholder="Date">
+
+</div>
+
+<div class="instructions">
+
+<strong>Instructions:</strong>
+
+<ol>
+    <li>Answer all questions.</li>
+    <li>Enter your answer in the box provided below each question.</li>
+    <li>Click <strong>Evaluate</strong> after completing the answers.</li>
+    <li>Marks are awarded based on the important concepts and numerical results expected in the answer.</li>
+    <li>Blank answers receive zero marks.</li>
+    <li>Use <strong>Show Answer Key</strong> to review the expected answers.</li>
+</ol>
+
+</div>
+
+
+<!-- =====================================================
+     PART A
+     ===================================================== -->
+
+<h2>
+PART A – Short Answer Questions (10 × 2 = 20 Marks)
+</h2>
+
+<div id="partA"></div>
+
+
+<!-- =====================================================
+     PART B
+     ===================================================== -->
+
+<h2>
+PART B – Descriptive / Numerical Questions (6 × 15 = 90 Marks)
+</h2>
+
+<div id="partB"></div>
+
+
+<!-- =====================================================
+     PART C
+     ===================================================== -->
+
+<h2>
+PART C – Integrated Application Question (1 × 20 = 20 Marks)
+</h2>
+
+<div id="partC"></div>
+
+
+<div class="button-area">
+
+<button
+    class="evaluate-btn"
+    onclick="evaluateAnswers()">
+    Evaluate
+</button>
+
+<button
+    class="answer-btn"
+    onclick="showAnswerKey()">
+    Show Answer Key
+</button>
+
+<button
+    class="print-btn"
+    onclick="window.print()">
+    Print / Save PDF
+</button>
+
+</div>
+
+<div id="warning" class="warning"></div>
+
+
+<!-- =====================================================
+     RESULT
+     ===================================================== -->
+
+<div id="result">
+
+<h2>Evaluation Result</h2>
+
+<div class="result-summary">
+
+<div>
+Student:
+<strong id="resultStudent"></strong>
+</div>
+
+<div class="total">
+Total Marks:
+<span id="totalMarks"></span> / 130
+</div>
+
+<div class="percentage">
+Percentage:
+<span id="percentage"></span> %
+</div>
+
+<div>
+<strong>Overall Feedback:</strong>
+<span id="overallFeedback"></span>
+</div>
+
+</div>
+
+
+<table class="score-table">
+
+<thead>
+
+<tr>
+<th>Question</th>
+<th>Maximum</th>
+<th>Marks</th>
+<th>Status</th>
+</tr>
+
+</thead>
+
+<tbody id="scoreTableBody"></tbody>
+
+</table>
+
+
+<div id="detailedEvaluation"></div>
+
+</div>
+
+
+<!-- =====================================================
+     ANSWER KEY
+     ===================================================== -->
+
+<div id="answerKey" class="answer-key">
+
+<h2>Answer Key</h2>
+
+<div id="answerKeyContent"></div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* ============================================================
+   FIXED SET 3 QUESTION PAPER
+   ============================================================ */
+
+const QUESTIONS = [
+
+/* ============================================================
+   PART A
+   ============================================================ */
+
+{
+    id: 1,
+    part: "A",
+    marks: 2,
+
+    question:
+    "What is meant by C-rate of a battery?",
+
+    answer:
+    "C-rate indicates the rate at which a battery is charged or discharged relative to its rated capacity. For example, 1C means the battery can theoretically be charged or discharged completely in one hour.",
+
+    keywords:
+    ["c rate", "capacity"],
+
+    alternatives:
+    [
+        ["charge", "capacity"],
+        ["discharge", "capacity"],
+        ["battery", "rate"]
+    ]
+},
+
+{
+    id: 2,
+    part: "A",
+    marks: 2,
+
+    question:
+    "Why are MOSFETs generally preferred for high-frequency switching applications?",
+
+    answer:
+    "MOSFETs have fast switching speed and relatively low switching losses, making them suitable for high-frequency power converter applications.",
+
+    keywords:
+    ["fast switching", "low switching losses"],
+
+    alternatives:
+    [
+        ["high frequency", "fast switching"],
+        ["switching speed", "losses"]
+    ]
+},
+
+{
+    id: 3,
+    part: "A",
+    marks: 2,
+
+    question:
+    "What is the purpose of an EMI filter in a robotic power converter?",
+
+    answer:
+    "An EMI filter reduces conducted electromagnetic interference generated by high-frequency switching and prevents interference from affecting other electronic circuits.",
+
+    keywords:
+    ["emi", "interference"],
+
+    alternatives:
+    [
+        ["filter", "noise"],
+        ["conducted", "interference"],
+        ["switching", "noise"]
+    ]
+},
+
+{
+    id: 4,
+    part: "A",
+    marks: 2,
+
+    question:
+    "A 36 V input is applied to a buck converter with a duty ratio of 25%. Determine the ideal output voltage.",
+
+    answer:
+    "Vo = D × Vin = 0.25 × 36 = 9 V.",
+
+    keywords:
+    ["9"],
+
+    numerical: true
+},
+
+{
+    id: 5,
+    part: "A",
+    marks: 2,
+
+    question:
+    "What is the function of a high-frequency transformer in an isolated DC-DC converter?",
+
+    answer:
+    "The high-frequency transformer provides galvanic isolation between input and output and also provides voltage transformation.",
+
+    keywords:
+    ["galvanic isolation", "voltage transformation"],
+
+    alternatives:
+    [
+        ["isolation", "transform"],
+        ["electrical isolation", "voltage"]
+    ]
+},
+
+{
+    id: 6,
+    part: "A",
+    marks: 2,
+
+    question:
+    "What is dynamic braking in a motor drive?",
+
+    answer:
+    "Dynamic braking slows the motor by converting its kinetic energy into electrical energy and dissipating the energy in a braking resistor or suitable circuit.",
+
+    keywords:
+    ["kinetic energy", "braking resistor"],
+
+    alternatives:
+    [
+        ["energy", "resistor"],
+        ["motor", "braking"],
+        ["dissipate", "energy"]
+    ]
+},
+
+{
+    id: 7,
+    part: "A",
+    marks: 2,
+
+    question:
+    "What is the function of Hall sensors in a BLDC motor drive?",
+
+    answer:
+    "Hall sensors detect rotor position and provide position information to the controller for correct electronic commutation of the BLDC motor.",
+
+    keywords:
+    ["rotor position", "commutation"],
+
+    alternatives:
+    [
+        ["hall", "position"],
+        ["rotor", "commutation"]
+    ]
+},
+
+{
+    id: 8,
+    part: "A",
+    marks: 2,
+
+    question:
+    "State one difference between speed control and position control in a servo system.",
+
+    answer:
+    "Speed control regulates the rotational speed of the motor, whereas position control regulates the angular or linear position of the mechanical system.",
+
+    keywords:
+    ["speed", "position"],
+
+    alternatives:
+    [
+        ["rotational speed", "position"],
+        ["velocity", "position"]
+    ]
+},
+
+{
+    id: 9,
+    part: "A",
+    marks: 2,
+
+    question:
+    "What is the purpose of current limiting in a power converter?",
+
+    answer:
+    "Current limiting prevents excessive current from damaging the switching devices, motor, battery or other components and improves system protection.",
+
+    keywords:
+    ["excessive current", "protection"],
+
+    alternatives:
+    [
+        ["overcurrent", "protection"],
+        ["current", "damage"],
+        ["limit", "current"]
+    ]
+},
+
+{
+    id: 10,
+    part: "A",
+    marks: 2,
+
+    question:
+    "Why is a heat sink required in a robotic power electronic system?",
+
+    answer:
+    "A heat sink transfers heat generated by semiconductor losses to the surrounding environment and maintains the device temperature within a safe operating range.",
+
+    keywords:
+    ["heat", "temperature"],
+
+    alternatives:
+    [
+        ["dissipate heat", "temperature"],
+        ["cooling", "semiconductor"],
+        ["thermal", "heat"]
+    ]
+},
+
+
+/* ============================================================
+   PART B
+   ============================================================ */
+
+{
+    id: 11,
+    part: "B",
+    marks: 15,
+
+    question:
+    "A mobile robotic system uses a 36 V, 20 Ah battery and consumes an average power of 360 W. Determine the stored battery energy, average battery current and ideal operating time. Explain the important battery-selection parameters for mobile robots.",
+
+    answer:
+    "Stored energy E = V × Ah = 36 × 20 = 720 Wh. Average battery current I = P/V = 360/36 = 10 A. Ideal operating time = E/P = 720/360 = 2 hours. Important battery-selection parameters include voltage, capacity, energy density, power density, C-rate, weight, size, cycle life, safety, thermal characteristics and cost.",
+
+    keywords:
+    ["720 wh", "10 a", "2 hours"],
+
+    alternatives:
+    [
+        ["720 wh", "10 a"],
+        ["720", "2 hours"],
+        ["energy density", "c rate"]
+    ],
+
+    numerical: true
+},
+
+{
+    id: 12,
+    part: "B",
+    marks: 15,
+
+    question:
+    "Explain the classification and selection of power converters for robotic systems. Discuss MOSFET and IGBT switching/conduction losses and explain the importance of thermal management.",
+
+    answer:
+    "Power converters can be classified as AC-DC, DC-DC, DC-AC and AC-AC converters. DC-DC converters can further be classified as isolated and non-isolated. Converter selection depends on input/output voltage, power rating, efficiency, switching frequency, isolation, size, cost, EMI and thermal requirements. MOSFETs are suitable for high-frequency applications while IGBTs are useful for higher-voltage and higher-power applications. Conduction loss in a MOSFET is approximately I²RDS(on), while switching loss is associated with turn-on and turn-off transitions. Thermal management is necessary to remove losses and maintain junction temperature within safe limits.",
+
+    keywords:
+    ["converter", "mosfet", "igbt", "thermal"],
+
+    alternatives:
+    [
+        ["ac dc", "dc dc"],
+        ["switching losses", "thermal"],
+        ["conduction", "switching"]
+    ]
+},
+
+{
+    id: 13,
+    part: "B",
+    marks: 15,
+
+    question:
+    "Design a buck converter for a robotic controller supply with input voltage 24 V, output voltage 15 V and output current 6 A. The switching frequency is 40 kHz. Allow the inductor current ripple to be 25% of the output current and output voltage ripple to be 1% of the output voltage. Determine output power, duty ratio, ripple current, inductance and approximate output capacitance.",
+
+    answer:
+    "Output power Po = VoIo = 15 × 6 = 90 W. Duty ratio D = Vo/Vin = 15/24 = 0.625 or 62.5%. Inductor ripple current ΔIL = 0.25 × 6 = 1.5 A. Inductance L = ((Vin−Vo)D)/(fsΔIL) = ((24−15)×0.625)/(40000×1.5) = 93.75 µH. Output voltage ripple ΔVo = 1% of 15 = 0.15 V. Approximate capacitor C = ΔIL/(8fsΔVo) = 1.5/(8×40000×0.15) = 31.25 µF.",
+
+    keywords:
+    ["90 w", "0.625", "1.5 a", "93.75 uh", "31.25 uf"],
+
+    alternatives:
+    [
+        ["90", "93.75 uh"],
+        ["62.5", "1.5 a"],
+        ["0.15", "31.25"]
+    ],
+
+    numerical: true
+},
+
+{
+    id: 14,
+    part: "B",
+    marks: 15,
+
+    question:
+    "Explain the operation of buck-boost converters in drone power systems. Discuss the need for isolation in robotic power supplies and explain the operation of bidirectional converters. For an inverting buck-boost converter, determine the duty ratio required to obtain an output magnitude of 24 V from an input of 16 V.",
+
+    answer:
+    "A buck-boost converter can provide an output magnitude higher or lower than the input by changing the duty ratio. For the ideal inverting buck-boost converter, |Vo| = D/(1−D) × Vin. Therefore, 24 = D/(1−D) × 16. Hence D = 24/(16+24) = 0.6 or 60%. Isolated converters provide galvanic isolation for safety and protection. Bidirectional converters allow power flow in both directions and are useful for battery charging and regenerative braking.",
+
+    keywords:
+    ["60%", "0.6", "galvanic isolation", "bidirectional"],
+
+    alternatives:
+    [
+        ["24", "16", "60"],
+        ["0.6", "regenerative braking"],
+        ["isolation", "bidirectional"]
+    ],
+
+    numerical: true
+},
+
+{
+    id: 15,
+    part: "B",
+    marks: 15,
+
+    question:
+    "Explain the operation of an H-bridge DC motor drive. Describe six-step BLDC operation using Hall sensors and explain the roles of an encoder and back-EMF sensing in motor drives.",
+
+    answer:
+    "An H-bridge consists of four switches and allows forward and reverse operation of a DC motor. PWM controls the average voltage and motor speed, while suitable switching can provide braking. In a BLDC drive, Hall sensors detect rotor position and the inverter energizes motor phases in a six-step commutation sequence. An encoder provides accurate rotor position and speed information, while back-EMF sensing can provide sensorless rotor-position information from the unenergized phase.",
+
+    keywords:
+    ["h bridge", "six step", "hall sensors", "encoder"],
+
+    alternatives:
+    [
+        ["four switches", "direction"],
+        ["commutation", "hall"],
+        ["back emf", "sensorless"]
+    ]
+},
+
+{
+    id: 16,
+    part: "B",
+    marks: 15,
+
+    question:
+    "Explain the role of sampling time in digital converter control. Describe Processor-in-the-Loop testing and explain how converter efficiency, ripple and thermal performance are evaluated.",
+
+    answer:
+    "Sampling time determines how frequently the digital controller measures feedback signals and updates the control command. It must be selected appropriately relative to the converter switching frequency and system dynamics. PIL testing executes the controller code on the target processor while the plant is simulated, allowing verification before hardware implementation. Efficiency is calculated as output power divided by input power multiplied by 100. Ripple is measured from voltage/current waveforms using an oscilloscope. Thermal performance is evaluated by measuring semiconductor temperature and relating temperature rise to power loss and thermal resistance.",
+
+    keywords:
+    ["sampling time", "pil", "efficiency", "ripple", "thermal"],
+
+    alternatives:
+    [
+        ["digital controller", "sampling"],
+        ["processor", "simulation"],
+        ["input power", "output power"]
+    ]
+},
+
+
+/* ============================================================
+   PART C
+   ============================================================ */
+
+{
+    id: 17,
+    part: "C",
+    marks: 20,
+
+    question:
+    "A humanoid robot has a 48 V battery and a 1.5 kW BLDC traction motor. A 12 V, 180 W auxiliary power supply is required for its controller and AI electronics. The auxiliary supply is obtained from the 48 V battery using a buck converter with 90% efficiency. (a) Determine the buck converter duty ratio, output current, input power and input current. (b) Explain BLDC six-step commutation using Hall sensors. (c) Explain the role of a servo drive for position, speed and torque control. (d) Explain regenerative braking and bidirectional power flow. (e) Explain digital control and PIL testing. (f) Discuss efficiency and thermal testing.",
+
+    answer:
+    "For the buck converter, D = Vo/Vin = 12/48 = 0.25 or 25%. Output current Io = Po/Vo = 180/12 = 15 A. Input power Pin = Po/η = 180/0.9 = 200 W. Input current Iin = Pin/Vin = 200/48 = 4.17 A. BLDC six-step commutation uses Hall sensors to determine rotor position and switches the inverter phases in the correct sequence. A servo drive uses cascaded position, speed and torque/current control loops to obtain accurate motion control. During regenerative braking, motor energy is returned through the bidirectional converter to the battery. Digital control uses a microcontroller to sample feedback signals, execute control algorithms and generate PWM signals. PIL verifies controller software on the target processor using a simulated plant. Efficiency is η = Pout/Pin × 100, while thermal testing evaluates semiconductor temperature, losses and thermal resistance.",
+
+    keywords:
+    [
+        "0.25",
+        "15 a",
+        "200 w",
+        "4.17 a",
+        "hall",
+        "regenerative",
+        "servo",
+        "pil"
+    ],
+
+    alternatives:
+    [
+        ["25%", "15 a", "4.17 a"],
+        ["six step", "hall sensors", "servo"],
+        ["regenerative", "bidirectional", "battery"],
+        ["digital control", "pwm", "pil"],
+        ["efficiency", "thermal"]
+    ],
+
+    numerical: true
+}
+
+];
+
+
+/* ============================================================
+   ESCAPE HTML
+   ============================================================ */
+
+function escapeHTML(text) {
+
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+/* ============================================================
+   RENDER QUESTIONS
+   ============================================================ */
+
+function renderQuestions() {
+
+    const partA =
+        document.getElementById("partA");
+
+    const partB =
+        document.getElementById("partB");
+
+    const partC =
+        document.getElementById("partC");
+
+    QUESTIONS.forEach(q => {
+
+        const div =
+            document.createElement("div");
+
+        div.className = "question";
+
+        div.innerHTML = `
+
+            <div class="question-title">
+
+                Q${q.id}. ${escapeHTML(q.question)}
+
+                <span class="marks">
+                    ${q.marks} Marks
+                </span>
+
+            </div>
+
+            <textarea
+                id="answer_${q.id}"
+                placeholder="Enter your answer here...">
+            </textarea>
+        `;
+
+        if(q.part === "A") {
+            partA.appendChild(div);
+        }
+
+        else if(q.part === "B") {
+            partB.appendChild(div);
+        }
+
+        else {
+            partC.appendChild(div);
+        }
+
+    });
+}
+
+
+/* ============================================================
+   NORMALIZE TEXT
+   ============================================================ */
+
+function normalizeText(text) {
+
+    return text
+        .toLowerCase()
+        .replace(/[^\w\s.%+-]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+
+/* ============================================================
+   NUMERICAL CHECK
+   ============================================================ */
+
+function containsNumber(text, number) {
+
+    const clean =
+        normalizeText(text);
+
+    const target =
+        String(number);
+
+    if(clean.includes(target)) {
+        return true;
+    }
+
+    const numbers =
+        clean.match(/[-+]?\d*\.?\d+/g);
+
+    if(!numbers) {
+        return false;
+    }
+
+    return numbers.some(n => {
+
+        const a = parseFloat(n);
+        const b = parseFloat(number);
+
+        if(isNaN(a) || isNaN(b)) {
+            return false;
+        }
+
+        return Math.abs(a - b)
+            <= Math.max(
+                0.02,
+                Math.abs(b) * 0.03
+            );
+
+    });
+}
+
+
+/* ============================================================
+   KEYWORD CHECK
+   ============================================================ */
+
+function keywordFound(answer, keyword) {
+
+    const text =
+        normalizeText(answer);
+
+    const key =
+        normalizeText(keyword);
+
+    return text.includes(key);
+}
+
+
+/* ============================================================
+   EVALUATE QUESTION
+   ============================================================ */
+
+function evaluateQuestion(q, studentAnswer) {
+
+    const answer =
+        studentAnswer.trim();
+
+    if(answer.length === 0) {
+
+        return {
+            marks: 0,
+            status: "NOT ATTEMPTED",
+            feedback:
+            "No answer was entered."
+        };
+    }
+
+
+    const normalized =
+        normalizeText(answer);
+
+
+    /* ========================================================
+       NUMERICAL QUESTIONS
+       ======================================================== */
+
+    if(q.numerical) {
+
+        let found = 0;
+
+        q.keywords.forEach(k => {
+
+            if(containsNumber(normalized, k)) {
+                found++;
+            }
+
+        });
+
+        const totalExpected =
+            q.keywords.length;
+
+        let score =
+            Math.round(
+                (found / totalExpected) *
+                q.marks
+            );
+
+
+        if(score >= q.marks * 0.8) {
+
+            return {
+                marks: q.marks,
+                status: "CORRECT",
+                feedback:
+                "The important numerical results are correct."
+            };
+        }
+
+
+        if(score > 0) {
+
+            return {
+                marks: score,
+                status: "PARTIALLY CORRECT",
+                feedback:
+                "Some numerical results are correct, but one or more expected results are missing or incorrect."
+            };
+        }
+
+
+        return {
+            marks: 0,
+            status: "WRONG",
+            feedback:
+            "The expected numerical results were not identified correctly."
+        };
+    }
+
+
+    /* ========================================================
+       THEORY QUESTIONS
+       ======================================================== */
+
+    let keywordScore = 0;
+
+    q.keywords.forEach(k => {
+
+        if(keywordFound(normalized, k)) {
+            keywordScore++;
+        }
+
+    });
+
+
+    let alternativeMatched = false;
+
+    if(q.alternatives) {
+
+        q.alternatives.forEach(group => {
+
+            let matched = 0;
+
+            group.forEach(k => {
+
+                if(keywordFound(normalized, k)) {
+                    matched++;
+                }
+
+            });
+
+            if(
+                matched >=
+                Math.min(2, group.length)
+            ) {
+
+                alternativeMatched = true;
+            }
+
+        });
+    }
+
+
+    if(
+        keywordScore >=
+        Math.ceil(q.keywords.length * 0.75)
+        ||
+        alternativeMatched
+    ) {
+
+        return {
+
+            marks: q.marks,
+
+            status: "CORRECT",
+
+            feedback:
+            "The answer contains the main expected concepts."
+        };
+    }
+
+
+    if(keywordScore > 0) {
+
+        let score =
+            Math.max(
+                1,
+                Math.round(
+                    q.marks *
+                    (
+                        keywordScore /
+                        q.keywords.length
+                    )
+                )
+            );
+
+        if(score >= q.marks) {
+            score = q.marks - 1;
+        }
+
+        return {
+
+            marks: score,
+
+            status:
+            "PARTIALLY CORRECT",
+
+            feedback:
+            "The answer contains some relevant concepts, but additional important points are required."
+        };
+    }
+
+
+    return {
+
+        marks: 0,
+
+        status: "WRONG",
+
+        feedback:
+        "The answer does not contain the expected key concepts."
+    };
+}
+
+
+/* ============================================================
+   EVALUATE ALL ANSWERS
+   ============================================================ */
+
+function evaluateAnswers() {
+
+    let total = 0;
+
+    let attempted = 0;
+    let correct = 0;
+    let partial = 0;
+    let wrong = 0;
+
+    const detailed =
+        document.getElementById(
+            "detailedEvaluation"
+        );
+
+    const scoreBody =
+        document.getElementById(
+            "scoreTableBody"
+        );
+
+    detailed.innerHTML = "";
+    scoreBody.innerHTML = "";
+
+
+    QUESTIONS.forEach(q => {
+
+        const textarea =
+            document.getElementById(
+                "answer_" + q.id
+            );
+
+        const studentAnswer =
+            textarea.value;
+
+
+        if(studentAnswer.trim() !== "") {
+            attempted++;
+        }
+
+
+        const result =
+            evaluateQuestion(
+                q,
+                studentAnswer
+            );
+
+
+        total += result.marks;
+
+
+        if(result.status === "CORRECT") {
+            correct++;
+        }
+
+        else if(
+            result.status ===
+            "PARTIALLY CORRECT"
+        ) {
+            partial++;
+        }
+
+        else if(
+            result.status === "WRONG"
+        ) {
+            wrong++;
+        }
+
+
+        /* SCORE TABLE */
+
+        const row =
+            document.createElement("tr");
+
+        row.innerHTML = `
+
+            <td>Q${q.id}</td>
+
+            <td>${q.marks}</td>
+
+            <td>${result.marks}</td>
+
+            <td>${result.status}</td>
+
+        `;
+
+        scoreBody.appendChild(row);
+
+
+        /* DETAILED EVALUATION */
+
+        let className = "wrong";
+
+        if(result.status === "CORRECT") {
+            className = "correct";
+        }
+
+        else if(
+            result.status ===
+            "PARTIALLY CORRECT"
+        ) {
+            className = "partial";
+        }
+
+        else if(
+            result.status ===
+            "NOT ATTEMPTED"
+        ) {
+            className = "not-attempted";
+        }
+
+
+        const item =
+            document.createElement("div");
+
+        item.className =
+            "evaluation-item " +
+            className;
+
+
+        item.innerHTML = `
+
+            <div class="status">
+
+                Q${q.id} —
+                ${result.status}
+                —
+                ${result.marks}/${q.marks}
+
+            </div>
+
+            <div>
+
+                <strong>Feedback:</strong>
+
+                ${escapeHTML(
+                    result.feedback
+                )}
+
+            </div>
+        `;
+
+
+        detailed.appendChild(item);
+
+    });
+
+
+    /* ========================================================
+       FINAL RESULT
+       ======================================================== */
+
+    const percentage =
+        (
+            (total / 130) *
+            100
+        ).toFixed(2);
+
+
+    document.getElementById(
+        "totalMarks"
+    ).textContent = total;
+
+
+    document.getElementById(
+        "percentage"
+    ).textContent = percentage;
+
+
+    document.getElementById(
+        "resultStudent"
+    ).textContent =
+        document.getElementById(
+            "studentName"
+        ).value || "Student";
+
+
+    let overallFeedback;
+
+
+    if(total >= 117) {
+
+        overallFeedback =
+        "Excellent performance. Very good understanding of power electronics for robotics.";
+
+    }
+
+    else if(total >= 98) {
+
+        overallFeedback =
+        "Very good performance. Most concepts and numerical problems are understood.";
+
+    }
+
+    else if(total >= 78) {
+
+        overallFeedback =
+        "Good performance. Some areas require additional practice.";
+
+    }
+
+    else if(total >= 65) {
+
+        overallFeedback =
+        "Satisfactory performance. More practice is recommended.";
+
+    }
+
+    else {
+
+        overallFeedback =
+        "More preparation is required. Review the basic concepts and numerical problems.";
+
+    }
+
+
+    document.getElementById(
+        "overallFeedback"
+    ).textContent =
+        overallFeedback;
+
+
+    document.getElementById(
+        "result"
+    ).style.display = "block";
+
+
+    document.getElementById(
+        "warning"
+    ).textContent =
+
+        `Attempted: ${attempted}/17 | ` +
+        `Correct: ${correct} | ` +
+        `Partially Correct: ${partial} | ` +
+        `Wrong: ${wrong}`;
+
+
+    document.getElementById(
+        "result"
+    ).scrollIntoView({
+        behavior: "smooth"
+    });
+}
+
+
+/* ============================================================
+   SHOW ANSWER KEY
+   ============================================================ */
+
+function showAnswerKey() {
+
+    const keyContainer =
+        document.getElementById(
+            "answerKey"
+        );
+
+    const content =
+        document.getElementById(
+            "answerKeyContent"
+        );
+
+
+    content.innerHTML = "";
+
+
+    QUESTIONS.forEach(q => {
+
+        const div =
+            document.createElement("div");
+
+        div.className = "key-item";
+
+
+        div.innerHTML = `
+
+            <strong>
+                Q${q.id}.
+                ${escapeHTML(q.question)}
+            </strong>
+
+            <div class="key-answer">
+
+                <strong>Answer:</strong>
+
+                ${escapeHTML(q.answer)}
+
+            </div>
+
+            <div>
+
+                <strong>
+                    Maximum Marks:
+                </strong>
+
+                ${q.marks}
+
+            </div>
+
+        `;
+
+
+        content.appendChild(div);
+
+    });
+
+
+    keyContainer.style.display =
+        "block";
+
+
+    keyContainer.scrollIntoView({
+        behavior: "smooth"
+    });
+}
+
+
+/* ============================================================
+   INITIALIZE
+   ============================================================ */
+
+renderQuestions();
+
+</script>
+
+</body>
+</html>
+

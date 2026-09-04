@@ -1,0 +1,972 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>Question Paper Set Selection</title>
+
+<style>
+
+/* =====================================================
+   GENERAL
+===================================================== */
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial, Helvetica, sans-serif;
+    background:#f3f6fa;
+    color:#222;
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.header{
+
+    background:#1f2937;
+
+    color:white;
+
+    padding:25px 15px;
+
+    text-align:center;
+
+}
+
+.header h1{
+
+    margin:0;
+
+    font-size:30px;
+
+}
+
+.header p{
+
+    margin:8px 0 0;
+
+    font-size:16px;
+
+    opacity:.9;
+
+}
+
+
+/* =====================================================
+   MAIN CONTAINER
+===================================================== */
+
+.container{
+
+    max-width:1200px;
+
+    margin:25px auto;
+
+    padding:0 15px;
+
+}
+
+
+/* =====================================================
+   STUDENT DETAILS
+===================================================== */
+
+.card{
+
+    background:white;
+
+    border-radius:12px;
+
+    padding:22px;
+
+    margin-bottom:20px;
+
+    box-shadow:
+        0 3px 12px rgba(0,0,0,.08);
+
+}
+
+.card h2{
+
+    margin-top:0;
+
+    color:#1f2937;
+
+}
+
+.student-grid{
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(auto-fit,minmax(250px,1fr));
+
+    gap:15px;
+
+}
+
+label{
+
+    display:block;
+
+    font-weight:bold;
+
+    margin-bottom:6px;
+
+}
+
+input{
+
+    width:100%;
+
+    padding:12px;
+
+    border:1px solid #ccc;
+
+    border-radius:7px;
+
+    font-size:15px;
+
+}
+
+
+/* =====================================================
+   SET BUTTONS
+===================================================== */
+
+.set-grid{
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(auto-fit,minmax(150px,1fr));
+
+    gap:15px;
+
+    margin-top:20px;
+
+}
+
+.set-button{
+
+    padding:20px 10px;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:#2563eb;
+
+    color:white;
+
+    font-size:18px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+    transition:.2s;
+
+}
+
+.set-button:hover{
+
+    transform:translateY(-2px);
+
+    opacity:.9;
+
+}
+
+.set-button.selected{
+
+    background:#16a34a;
+
+    box-shadow:
+        0 0 0 3px #bbf7d0;
+
+}
+
+
+/* =====================================================
+   SELECTED SET
+===================================================== */
+
+.selected-box{
+
+    margin-top:20px;
+
+    padding:15px;
+
+    border-radius:8px;
+
+    background:#eff6ff;
+
+    border:1px solid #bfdbfe;
+
+    text-align:center;
+
+    font-size:17px;
+
+}
+
+.selected-box strong{
+
+    color:#2563eb;
+
+}
+
+
+/* =====================================================
+   OPEN BUTTON
+===================================================== */
+
+.open-button{
+
+    display:block;
+
+    margin:20px auto 0;
+
+    padding:14px 30px;
+
+    border:none;
+
+    border-radius:8px;
+
+    background:#16a34a;
+
+    color:white;
+
+    font-size:17px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+}
+
+.open-button:hover{
+
+    opacity:.9;
+
+}
+
+.open-button:disabled{
+
+    background:#9ca3af;
+
+    cursor:not-allowed;
+
+}
+
+
+/* =====================================================
+   QUESTION PAPER AREA
+===================================================== */
+
+.paper-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    flex-wrap:wrap;
+
+    gap:10px;
+
+    margin-bottom:15px;
+
+}
+
+.paper-header h2{
+
+    margin:0;
+
+}
+
+.change-button{
+
+    padding:10px 18px;
+
+    border:none;
+
+    border-radius:7px;
+
+    background:#6b7280;
+
+    color:white;
+
+    cursor:pointer;
+
+}
+
+
+/* =====================================================
+   IFRAME
+===================================================== */
+
+.paper-frame{
+
+    width:100%;
+
+    height:900px;
+
+    border:2px solid #d1d5db;
+
+    border-radius:10px;
+
+    background:white;
+
+}
+
+
+/* =====================================================
+   LOADING
+===================================================== */
+
+.loading{
+
+    text-align:center;
+
+    padding:20px;
+
+    font-size:16px;
+
+    display:none;
+
+}
+
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+.footer{
+
+    text-align:center;
+
+    padding:25px;
+
+    color:#6b7280;
+
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media(max-width:600px){
+
+    .header h1{
+
+        font-size:23px;
+
+    }
+
+    .set-button{
+
+        font-size:16px;
+
+        padding:16px 8px;
+
+    }
+
+    .paper-frame{
+
+        height:750px;
+
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<div class="header">
+
+    <h1>
+        Power Electronics for Robotics
+    </h1>
+
+    <p>
+        Online Question Paper Selection
+    </p>
+
+</div>
+
+
+<div class="container">
+
+
+<!-- =====================================================
+     STUDENT DETAILS
+===================================================== -->
+
+<div class="card">
+
+    <h2>
+        Student Details
+    </h2>
+
+    <div class="student-grid">
+
+        <div>
+
+            <label>
+                Student Name
+            </label>
+
+            <input
+                type="text"
+                id="studentName"
+                placeholder="Enter student name">
+
+        </div>
+
+
+        <div>
+
+            <label>
+                Register Number
+            </label>
+
+            <input
+                type="text"
+                id="registerNumber"
+                placeholder="Enter register number">
+
+        </div>
+
+
+        <div>
+
+            <label>
+                Class / Section
+            </label>
+
+            <input
+                type="text"
+                id="classSection"
+                placeholder="Enter class / section">
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     QUESTION PAPER SET SELECTION
+===================================================== -->
+
+<div class="card">
+
+    <h2>
+        Select Question Paper Set
+    </h2>
+
+    <p>
+        Select any one question paper set.
+    </p>
+
+
+    <div class="set-grid">
+
+
+        <button
+            class="set-button"
+            onclick="selectSet(1)">
+            SET 1
+        </button>
+
+
+        <button
+            class="set-button"
+            onclick="selectSet(2)">
+            SET 2
+        </button>
+
+
+        <button
+            class="set-button"
+            onclick="selectSet(3)">
+            SET 3
+        </button>
+
+
+        <button
+            class="set-button"
+            onclick="selectSet(4)">
+            SET 4
+        </button>
+
+
+        <button
+            class="set-button"
+            onclick="selectSet(5)">
+            SET 5
+        </button>
+
+
+        <button
+            class="set-button"
+            onclick="selectSet(6)">
+            SET 6
+        </button>
+
+
+        <button
+            class="set-button"
+            onclick="selectSet(7)">
+            SET 7
+        </button>
+
+
+        <button
+            class="set-button"
+            onclick="selectSet(8)">
+            SET 8
+        </button>
+
+
+        <button
+            class="set-button"
+            onclick="selectSet(9)">
+            SET 9
+        </button>
+
+
+    </div>
+
+
+    <div
+        class="selected-box"
+        id="selectedBox">
+
+        No question paper set selected.
+
+    </div>
+
+
+    <button
+        class="open-button"
+        id="openButton"
+        onclick="openSelectedSet()"
+        disabled>
+
+        OPEN SELECTED QUESTION PAPER
+
+    </button>
+
+</div>
+
+
+<!-- =====================================================
+     QUESTION PAPER DISPLAY
+===================================================== -->
+
+<div
+    class="card"
+    id="paperCard"
+    style="display:none;">
+
+
+    <div class="paper-header">
+
+        <h2 id="paperTitle">
+            Question Paper
+        </h2>
+
+
+        <button
+            class="change-button"
+            onclick="changeSet()">
+
+            Change Set
+
+        </button>
+
+    </div>
+
+
+    <div
+        class="loading"
+        id="loadingMessage">
+
+        Loading question paper...
+
+    </div>
+
+
+    <iframe
+        id="questionPaperFrame"
+        class="paper-frame"
+        title="Question Paper">
+
+    </iframe>
+
+
+</div>
+
+
+</div>
+
+
+<!-- =====================================================
+     FOOTER
+===================================================== -->
+
+<div class="footer">
+
+    Online Question Paper System
+
+</div>
+
+
+
+<script>
+
+/* =====================================================
+   GLOBAL VARIABLE
+===================================================== */
+
+let selectedSet = 0;
+
+
+/* =====================================================
+   SELECT SET
+===================================================== */
+
+function selectSet(setNumber){
+
+    selectedSet = setNumber;
+
+
+    /* -----------------------------------------------
+       Remove selected class from all buttons
+    ------------------------------------------------ */
+
+    const buttons =
+        document.querySelectorAll(
+            ".set-button"
+        );
+
+
+    buttons.forEach(
+        button => {
+
+            button.classList.remove(
+                "selected"
+            );
+
+        }
+    );
+
+
+    /* -----------------------------------------------
+       Select clicked button
+    ------------------------------------------------ */
+
+    buttons[setNumber - 1]
+        .classList.add("selected");
+
+
+    /* -----------------------------------------------
+       Display selected set
+    ------------------------------------------------ */
+
+    document
+        .getElementById("selectedBox")
+        .innerHTML =
+
+        `
+        Selected Question Paper:
+        <strong>SET ${setNumber}</strong>
+        `;
+
+
+    /* -----------------------------------------------
+       Enable open button
+    ------------------------------------------------ */
+
+    document
+        .getElementById("openButton")
+        .disabled = false;
+
+}
+
+
+/* =====================================================
+   OPEN SELECTED SET
+===================================================== */
+
+function openSelectedSet(){
+
+    if(selectedSet === 0){
+
+        alert(
+            "Please select a question paper set."
+        );
+
+        return;
+
+    }
+
+
+    /* -----------------------------------------------
+       File names
+    ------------------------------------------------ */
+
+    const fileName =
+        "Set" +
+        selectedSet +
+        ".html";
+
+
+    /* -----------------------------------------------
+       Get iframe
+    ------------------------------------------------ */
+
+    const frame =
+        document.getElementById(
+            "questionPaperFrame"
+        );
+
+
+    /* -----------------------------------------------
+       Loading message
+    ------------------------------------------------ */
+
+    document
+        .getElementById(
+            "loadingMessage"
+        )
+        .style.display = "block";
+
+
+    /* -----------------------------------------------
+       Set title
+    ------------------------------------------------ */
+
+    document
+        .getElementById(
+            "paperTitle"
+        )
+        .innerText =
+
+        "Question Paper - SET " +
+        selectedSet;
+
+
+    /* -----------------------------------------------
+       Load existing HTML
+    ------------------------------------------------ */
+
+    frame.src = fileName;
+
+
+    /* -----------------------------------------------
+       Show paper area
+    ------------------------------------------------ */
+
+    document
+        .getElementById(
+            "paperCard"
+        )
+        .style.display = "block";
+
+
+    /* -----------------------------------------------
+       Hide loading after page loads
+    ------------------------------------------------ */
+
+    frame.onload = function(){
+
+        document
+            .getElementById(
+                "loadingMessage"
+            )
+            .style.display = "none";
+
+    };
+
+
+    /* -----------------------------------------------
+       Scroll to question paper
+    ------------------------------------------------ */
+
+    setTimeout(
+        function(){
+
+            document
+                .getElementById(
+                    "paperCard"
+                )
+                .scrollIntoView({
+                    behavior:"smooth"
+                });
+
+        },
+        200
+    );
+
+}
+
+
+/* =====================================================
+   CHANGE SET
+===================================================== */
+
+function changeSet(){
+
+    document
+        .getElementById(
+            "paperCard"
+        )
+        .style.display = "none";
+
+
+    window.scrollTo({
+
+        top:0,
+
+        behavior:"smooth"
+
+    });
+
+}
+
+
+/* =====================================================
+   STORE STUDENT DETAILS
+===================================================== */
+
+document
+    .getElementById(
+        "studentName"
+    )
+    .addEventListener(
+        "input",
+        saveStudentDetails
+    );
+
+
+document
+    .getElementById(
+        "registerNumber"
+    )
+    .addEventListener(
+        "input",
+        saveStudentDetails
+    );
+
+
+document
+    .getElementById(
+        "classSection"
+    )
+    .addEventListener(
+        "input",
+        saveStudentDetails
+    );
+
+
+function saveStudentDetails(){
+
+    localStorage.setItem(
+        "studentName",
+        document.getElementById(
+            "studentName"
+        ).value
+    );
+
+
+    localStorage.setItem(
+        "registerNumber",
+        document.getElementById(
+            "registerNumber"
+        ).value
+    );
+
+
+    localStorage.setItem(
+        "classSection",
+        document.getElementById(
+            "classSection"
+        ).value
+    );
+
+}
+
+
+/* =====================================================
+   RESTORE STUDENT DETAILS
+===================================================== */
+
+window.addEventListener(
+    "load",
+    function(){
+
+        document
+            .getElementById(
+                "studentName"
+            )
+            .value =
+            localStorage.getItem(
+                "studentName"
+            ) || "";
+
+
+        document
+            .getElementById(
+                "registerNumber"
+            )
+            .value =
+            localStorage.getItem(
+                "registerNumber"
+            ) || "";
+
+
+        document
+            .getElementById(
+                "classSection"
+            )
+            .value =
+            localStorage.getItem(
+                "classSection"
+            ) || "";
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>
+

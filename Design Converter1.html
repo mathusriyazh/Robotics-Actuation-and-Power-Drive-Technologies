@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DC-DC Converter Design Calculator</title>
+<style>
+  :root{
+    --bg:#0f1420; --panel:#161d2e; --panel2:#111827; --wire:#4a5570;
+    --accent:#f59e0b; --accent2:#22c55e; --text:#e2e8f0; --muted:#8b93a7;
+    --volt:#38bdf8; --curr:#a78bfa; --warn:#f472b6;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;padding:20px;}
+  .wrap{max-width:1080px;margin:0 auto;}
+  h1{font-size:1.35rem;margin:0 0 4px 0;font-weight:700;}
+  .sub{color:var(--muted);font-size:0.9rem;margin-bottom:18px;}
+
+  .tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .tab{background:#1a2236;border:1px solid #2e3a5c;color:var(--muted);padding:10px 18px;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.9rem;transition:all .15s;}
+  .tab.active{background:var(--accent);color:#1a1200;border-color:var(--accent);}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:820px){.grid{grid-template-columns:1fr;}}
+
+  .panel{background:var(--panel);border-radius:14px;padding:18px;margin-bottom:16px;border:1px solid #232b40;}
+  .panel h2{font-size:0.95rem;margin:0 0 14px 0;color:var(--text);font-weight:700;}
+  .panel h2 .k{color:var(--accent);}
+
+  label{display:block;font-size:0.78rem;color:var(--muted);margin-bottom:4px;margin-top:12px;}
+  label:first-child{margin-top:0;}
+  input[type=number], select{
+    width:100%;background:#0d1220;border:1px solid #2e3a5c;color:var(--text);
+    padding:9px 10px;border-radius:8px;font-size:0.9rem;
+  }
+  input[type=range]{width:100%;accent-color:var(--accent);}
+  .rangewrap{display:flex;align-items:center;gap:10px;}
+  .rangewrap span{font-size:0.8rem;color:var(--text);font-weight:700;min-width:38px;text-align:right;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+  .resultsgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;}
+  .rItem{padding:10px 0;border-bottom:1px solid #232b40;}
+  .rItem .k{font-size:0.75rem;color:var(--muted);}
+  .rItem .v{font-size:1.05rem;font-weight:700;color:var(--volt);margin-top:2px;}
+  .rItem .v.warn{color:var(--warn);}
+  .rItem .eq{font-size:0.72rem;color:#5c6784;margin-top:3px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
+
+  .eqbox{background:var(--panel2);border-radius:10px;padding:14px 16px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.82rem;line-height:2;color:#9fb0d0;border:1px solid #232b40;}
+  .eqbox .c{color:#5c6784;font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;font-size:0.75rem;}
+
+  .note{background:#1c1408;border:1px solid #3a2a0c;border-radius:10px;padding:12px 14px;font-size:0.83rem;color:#e0c084;line-height:1.5;margin-top:10px;}
+
+  .comp{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #232b40;align-items:flex-start;}
+  .comp:last-child{border-bottom:none;}
+  .comp .tag{background:#1a2236;color:var(--accent2);font-size:0.7rem;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap;margin-top:2px;}
+  .comp .body b{font-size:0.9rem;}
+  .comp .body .d{font-size:0.8rem;color:var(--muted);margin-top:2px;line-height:1.5;}
+
+  .badge{display:inline-block;background:rgba(56,189,248,.15);color:var(--volt);border:1px solid rgba(56,189,248,.4);border-radius:20px;padding:3px 10px;font-size:0.75rem;font-weight:700;margin-left:8px;}
+
+  .schem{width:100%;height:auto;display:block;margin-top:8px;}
+  .lbl{font-size:12px;fill:var(--text);font-weight:600;}
+  .lbl-sub{font-size:10px;fill:var(--muted);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>DC-DC Converter Design Calculator</h1>
+  <div class="sub">Pick a topology, enter your specs, get duty cycle, component values, stress ratings, and suggested off-the-shelf parts.</div>
+
+  <div class="tabs">
+    <div class="tab active" data-t="buck">Buck</div>
+    <div class="tab" data-t="boost">Boost</div>
+    <div class="tab" data-t="buckboost">Buck-Boost</div>
+    <div class="tab" data-t="flyback">Flyback (Isolated)</div>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <h2>Specifications</h2>
+      <div class="row2">
+        <div><label>Input Voltage Vin (V)</label><input type="number" id="vin" value="48"></div>
+        <div><label>Output Voltage Vout (V)</label><input type="number" id="vout" value="24"></div>
+      </div>
+      <div class="row2">
+        <div><label>Load Power Pout (W)</label><input type="number" id="pout" value="120"></div>
+        <div><label>Switching Freq (kHz)</label><input type="number" id="fsw" value="100"></div>
+      </div>
+      <label>Load Type</label>
+      <select id="loadtype">
+        <option value="resistive">Resistive</option>
+        <option value="led">LED / Constant-Current</option>
+        <option value="motor">Motor / Inductive</option>
+        <option value="battery">Battery Charging (CC-CV)</option>
+      </select>
+      <label>Switch Type</label>
+      <select id="switchtype">
+        <option value="mosfet">Power MOSFET</option>
+        <option value="igbt">Power IGBT</option>
+      </select>
+      <div id="turnsWrap" style="display:none;">
+        <label>Transformer Turns Ratio N = Ns/Np</label>
+        <input type="number" id="turns" value="0.5" step="0.05">
+      </div>
+      <label>Inductor Current Ripple <span id="ilRippleVal">30%</span> of avg</label>
+      <input type="range" id="ilRipple" min="10" max="60" value="30">
+      <label>Output Voltage Ripple <span id="voRippleVal">1.0%</span> of Vout</label>
+      <input type="range" id="voRipple" min="0.2" max="5" step="0.1" value="1.0">
+    </div>
+
+    <div class="panel">
+      <h2>Circuit Topology</h2>
+      <svg id="schematic" class="schem" viewBox="0 0 400 180" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="note" id="loadNote"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Results</h2>
+    <div class="resultsgrid" id="results"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Design Equations</h2>
+    <div class="eqbox" id="equations"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Suggested Components <span class="badge">example parts by rating class</span></h2>
+    <div id="components"></div>
+    <div class="note">These are common, widely-stocked reference parts matching the computed voltage/current class — not a live inventory match. Always re-check the current datasheet (voltage/current derating, thermal resistance, SOA) against your final ripple, ambient temperature, and safety margin before committing to a part.</div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let topo = 'buck';
+
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    topo = t.dataset.t;
+    $('turnsWrap').style.display = (topo==='flyback') ? 'block' : 'none';
+    // sensible defaults per topology
+    if(topo==='buck'){ $('vin').value=48; $('vout').value=24; }
+    if(topo==='boost'){ $('vin').value=12; $('vout').value=48; }
+    if(topo==='buckboost'){ $('vin').value=48; $('vout').value=24; }
+    if(topo==='flyback'){ $('vin').value=48; $('vout').value=12; $('turns').value=0.35; }
+    compute();
+  });
+});
+
+['vin','vout','pout','fsw','loadtype','switchtype','turns'].forEach(id=>{
+  $(id).addEventListener('input', compute);
+});
+$('ilRipple').addEventListener('input', ()=>{ $('ilRippleVal').textContent = $('ilRipple').value+'%'; compute(); });
+$('voRipple').addEventListener('input', ()=>{ $('voRippleVal').textContent = $('voRipple').value+'%'; compute(); });
+
+function fmt(v, d=2){
+  if(!isFinite(v)) return '—';
+  if(Math.abs(v) >= 1000) return (v/1000).toFixed(d)+'k';
+  return v.toFixed(d);
+}
+
+function suggestBattery(vin){
+  if(vin<=6) return {tag:'SOURCE', name:'1S Li-ion / 5V USB supply', d:'Single 3.7V Li-ion cell or a regulated 5V adapter, depending on '+vin.toFixed(1)+'V target.'};
+  if(vin<=14) return {tag:'SOURCE', name:'12V lead-acid or 3S Li-ion pack (11.1V nominal)', d:'Common 12V SLA battery, or a 3S 18650 Li-ion pack (10.8–12.6V range).'};
+  if(vin<=26) return {tag:'SOURCE', name:'24V SLA or 6S/7S Li-ion pack', d:'Standard 24V lead-acid battery, or a 6S–7S Li-ion/LiFePO4 pack (~22–25V).'};
+  if(vin<=54) return {tag:'SOURCE', name:'48V LiFePO4 (16S) or 12S–13S Li-ion pack', d:'Common 48V nominal e-bike/telecom battery pack, or 12S–13S Li-ion (~44–54V).'};
+  if(vin<=110) return {tag:'SOURCE', name:'72–96V EV-class Li-ion / LiFePO4 pack', d:'Multi-module series pack — needs a proper BMS; consult a battery-pack integrator.'};
+  return {tag:'SOURCE', name:'High-voltage traction battery pack', d:'>100V packs need certified BMS, isolation monitoring, and safety enclosures — specialist design territory.'};
+}
+
+function suggestSwitch(type, vstress, ipeak){
+  const vmargin = vstress*1.25; // 25% derating headroom
+  if(type==='mosfet'){
+    if(vmargin<=60) return {tag:'MOSFET', name: ipeak<=25?'IRLZ44N (55V, 47A, logic-level, RDS(on)≈22mΩ)':'IRFZ44N (55V, 49A, RDS(on)≈17.5mΩ)', d:'TO-220 through-hole, very common 40–60V class MOSFET. Needs '+vmargin.toFixed(0)+'V+ rating headroom.'};
+    if(vmargin<=100) return {tag:'MOSFET', name:'IRF540N (100V, 33A, RDS(on)≈44mΩ)', d:'TO-220, widely available 100V class MOSFET.'};
+    if(vmargin<=200) return {tag:'MOSFET', name:'IRFB4227 / STP20NM60 class (200V+ range)', d:'Higher-voltage MOSFET — check RDS(on) vs. your switching frequency for gate-drive/loss tradeoffs.'};
+    return {tag:'MOSFET', name:'STP20NM60 / IXFH-series (600V class)', d:'High-voltage MOSFET, needed since stress exceeds ~200V — consider superjunction devices for lower RDS(on).'};
+  } else {
+    if(vmargin<=600) return {tag:'IGBT', name: ipeak<=30?'IRG4PC50W (600V, 27A, Vce(sat)≈1.3V)':'IRGP4066D (600V, 96A)', d:'TO-247 IGBT, common for 300–600V, higher-current or higher-frequency-limited designs.'};
+    return {tag:'IGBT', name:'FGA25N120ANTD (1200V, 50A)', d:'1200V-class IGBT for high-voltage bus designs.'};
+  }
+}
+
+function suggestDiode(vstress, iavg){
+  const vmargin = vstress*1.3;
+  if(vmargin<=45) return {tag:'DIODE', name: iavg<=5?'SB540 (40V, 5A Schottky)':'MBR2045CT (45V, 20A dual Schottky)', d:'Low-voltage Schottky — low forward drop, good efficiency for <45V stress.'};
+  if(vmargin<=60) return {tag:'DIODE', name:'MBR6045WT (60V, 30A Schottky)', d:'Schottky rectifier for 45–60V stress range.'};
+  if(vmargin<=100) return {tag:'DIODE', name:'MBR20100CT (100V, 20A dual Schottky)', d:'Common 100V-class Schottky, TO-220 dual package.'};
+  return {tag:'DIODE', name:'STTH3006 class (600V, 30A ultrafast)', d:'Above ~100V, Schottky options get scarce/expensive — an ultrafast recovery diode is the standard choice.'};
+}
+
+function suggestInductor(current, Lval){
+  let series;
+  if(current<=5) series = 'Bourns SRP0310/SRP0412 or Würth WE-PD2 series (shielded SMD power inductors)';
+  else if(current<=15) series = 'Würth WE-HCI or Bourns SRP1265A series (shielded high-current inductors)';
+  else series = 'Coilcraft XAL / XEL power inductors, or a custom toroid on a Micrometals T-series powdered-iron core';
+  return {tag:'INDUCTOR', name: `${Lval.toFixed(1)} µH, Isat > ${(current*1.3).toFixed(1)} A`, d: series + '. Pick a part whose saturation current comfortably clears your peak current with margin, and check core loss at your switching frequency.'};
+}
+
+function suggestCap(Cval, vstress, load){
+  const vrating = vstress*1.3;
+  let type = 'low-ESR aluminum electrolytic (e.g. Nichicon UHE / UWX series) or polymer (Panasonic OS-CON / Nichicon PLG) for higher ripple current';
+  if(load==='led' || load==='motor') type += '; add local ceramic (X7R) for high-frequency ripple';
+  return {tag:'CAPACITOR', name:`${Cval.toFixed(0)} µF, rated ≥ ${vrating.toFixed(0)} V`, d: type + '.'};
+}
+
+const loadNotes = {
+  resistive: 'Resistive load: straightforward — steady-state ripple targets (~1% Vout) are usually sufficient.',
+  led: 'LED / constant-current load: this converter is really a pre-regulator — pair it with (or replace the simple duty control with) a constant-current control loop; keep output ripple low to avoid visible flicker.',
+  motor: 'Motor / inductive load: the load itself adds inductance and can source back-EMF — consider a freewheeling/clamp path and be cautious of reverse power flow if the motor regenerates.',
+  battery: 'Battery charging: needs closed-loop CC-CV control (constant current bulk charge, constant voltage taper) rather than a fixed duty cycle — this calculator sizes the power stage, not the charge-control loop.'
+};
+
+function compute(){
+  const Vin = parseFloat($('vin').value)||0;
+  const Vout = parseFloat($('vout').value)||0;
+  const Pout = parseFloat($('pout').value)||0;
+  const fsw = (parseFloat($('fsw').value)||0)*1000;
+  const loadtype = $('loadtype').value;
+  const switchtype = $('switchtype').value;
+  const N = parseFloat($('turns').value)||1;
+  const ilRip = parseFloat($('ilRipple').value)/100;
+  const voRip = parseFloat($('voRipple').value)/100;
+
+  $('loadNote').textContent = loadNotes[loadtype];
+
+  const Iout = Pout/Vout;
+  let D, ILavg, ILpeak, L, C, swV, swI, diV, diI, eqText;
+
+  if(topo==='buck'){
+    D = Vout/Vin;
+    ILavg = Iout;
+    const dIL = ilRip*ILavg;
+    L = ((Vin-Vout)*D) / (fsw*dIL) * 1e6; // uH
+    ILpeak = ILavg + dIL/2;
+    C = (dIL/(8*fsw*(voRip*Vout))) * 1e6; // uF
+    swV = Vin; swI = ILpeak;
+    diV = Vin; diI = Iout;
+    eqText = `<span class="c">// Buck (step-down), CCM</span>
+D        = Vout / Vin                         = ${fmt(D,3)}
+Iout     = Pout / Vout                        = ${fmt(Iout)} A
+IL(avg)  = Iout                                = ${fmt(ILavg)} A
+ΔIL      = (Vin−Vout)·D / (fsw·L)
+L        = (Vin−Vout)·D / (fsw·ΔIL)           = ${fmt(L)} µH
+IL(pk)   = IL(avg) + ΔIL/2                     = ${fmt(ILpeak)} A
+C(out)   = ΔIL / (8·fsw·ΔVout)                 = ${fmt(C)} µF
+Switch   Vstress = Vin                         = ${fmt(swV)} V,  Ipk = ${fmt(swI)} A
+Diode    Vstress = Vin                         = ${fmt(diV)} V,  Iavg = ${fmt(diI)} A`;
+  }
+  else if(topo==='boost'){
+    D = 1 - Vin/Vout;
+    ILavg = Iout/(1-D);
+    const dIL = ilRip*ILavg;
+    L = (Vin*D) / (fsw*dIL) * 1e6;
+    ILpeak = ILavg + dIL/2;
+    C = (Iout*D) / (fsw*(voRip*Vout)) * 1e6;
+    swV = Vout; swI = ILpeak;
+    diV = Vout; diI = Iout;
+    eqText = `<span class="c">// Boost (step-up), CCM</span>
+D        = 1 − Vin/Vout                        = ${fmt(D,3)}
+Iout     = Pout / Vout                         = ${fmt(Iout)} A
+IL(avg)  = Iin = Iout / (1−D)                  = ${fmt(ILavg)} A
+ΔIL      = Vin·D / (fsw·L)
+L        = Vin·D / (fsw·ΔIL)                   = ${fmt(L)} µH
+IL(pk)   = IL(avg) + ΔIL/2                      = ${fmt(ILpeak)} A
+C(out)   = Iout·D / (fsw·ΔVout)                 = ${fmt(C)} µF
+Switch   Vstress = Vout                         = ${fmt(swV)} V,  Ipk = ${fmt(swI)} A
+Diode    Vstress = Vout                         = ${fmt(diV)} V,  Iavg = ${fmt(diI)} A`;
+  }
+  else if(topo==='buckboost'){
+    D = Vout/(Vout+Vin);
+    ILavg = Iout/(1-D);
+    const dIL = ilRip*ILavg;
+    L = (Vin*D) / (fsw*dIL) * 1e6;
+    ILpeak = ILavg + dIL/2;
+    C = (Iout*D) / (fsw*(voRip*Vout)) * 1e6;
+    swV = Vin+Vout; swI = ILpeak;
+    diV = Vin+Vout; diI = Iout;
+    eqText = `<span class="c">// Buck-Boost (inverting), CCM</span>
+D        = Vout / (Vout+Vin)                    = ${fmt(D,3)}
+Iout     = Pout / Vout                          = ${fmt(Iout)} A
+IL(avg)  = Iout / (1−D)                          = ${fmt(ILavg)} A
+ΔIL      = Vin·D / (fsw·L)
+L        = Vin·D / (fsw·ΔIL)                     = ${fmt(L)} µH
+IL(pk)   = IL(avg) + ΔIL/2                        = ${fmt(ILpeak)} A
+C(out)   = Iout·D / (fsw·ΔVout)                   = ${fmt(C)} µF
+Switch   Vstress = Vin+Vout                       = ${fmt(swV)} V,  Ipk = ${fmt(swI)} A
+Diode    Vstress = Vin+Vout                       = ${fmt(diV)} V,  Iavg = ${fmt(diI)} A
+<span class="c">// output is inverted polarity relative to Vin</span>`;
+  }
+  else { // flyback
+    D = Vout/(N*Vin+Vout);
+    const Ip_avg = Pout/(Vin*D); // primary avg current while conducting basis
+    ILavg = Ip_avg; // treat as primary-referred inductor avg for sizing display
+    const dIL = ilRip*ILavg;
+    // primary magnetizing inductance sizing (CCM approx): Lp = Vin*D/(fsw*dIL)
+    L = (Vin*D)/(fsw*dIL) * 1e6;
+    ILpeak = ILavg + dIL/2;
+    // secondary side output cap, similar to boost/buckboost form using Iout & D
+    C = (Iout*D) / (fsw*(voRip*Vout)) * 1e6;
+    swV = Vin + Vout/N;
+    swI = ILpeak;
+    diV = Vout + Vin*N;
+    diI = Iout;
+    eqText = `<span class="c">// Flyback (isolated buck-boost), N = Ns/Np, CCM approx</span>
+D          = Vout / (N·Vin + Vout)                = ${fmt(D,3)}
+Iout       = Pout / Vout                          = ${fmt(Iout)} A
+Ip(avg)    = Pout / (Vin·D)  <span class="c">(primary avg while conducting)</span> = ${fmt(ILavg)} A
+ΔIp        = Vin·D / (fsw·Lp)
+Lp         = Vin·D / (fsw·ΔIp)                     = ${fmt(L)} µH  <span class="c">(primary magnetizing inductance)</span>
+Ip(pk)     = Ip(avg) + ΔIp/2                        = ${fmt(ILpeak)} A
+C(out)     = Iout·D / (fsw·ΔVout)                   = ${fmt(C)} µF
+Switch     Vstress = Vin + Vout/N                    = ${fmt(swV)} V,  Ipk = ${fmt(swI)} A
+Diode      Vstress = Vout + N·Vin                     = ${fmt(diV)} V,  Iavg = ${fmt(diI)} A
+<span class="c">// add ~30–50% extra voltage margin on the switch for leakage-inductance spike</span>`;
+  }
+
+  $('equations').innerHTML = eqText;
+
+  const results = [
+    ['Duty Cycle D', (D*100).toFixed(1)+' %'],
+    ['Output Current Iout', Iout.toFixed(2)+' A'],
+    [topo==='flyback' ? 'Primary Avg Current' : 'Inductor Avg Current', ILavg.toFixed(2)+' A'],
+    [topo==='flyback' ? 'Primary Peak Current' : 'Inductor Peak Current', ILpeak.toFixed(2)+' A'],
+    [topo==='flyback' ? 'Primary Inductance Lp' : 'Inductor L', L.toFixed(1)+' µH'],
+    ['Output Capacitance C', C.toFixed(1)+' µF'],
+    ['Switch Voltage Stress', swV.toFixed(1)+' V'],
+    ['Switch Peak Current', swI.toFixed(2)+' A'],
+    ['Diode Voltage Stress', diV.toFixed(1)+' V'],
+    ['Diode Avg Current', diI.toFixed(2)+' A'],
+  ];
+  $('results').innerHTML = results.map(([k,v])=>`<div class="rItem"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+
+  // components
+  const battery = suggestBattery(Vin);
+  const sw = suggestSwitch(switchtype, swV, swI);
+  const diode = suggestDiode(diV, diI);
+  const ind = suggestInductor(ILpeak, L);
+  const cap = suggestCap(C, Vout, loadtype);
+  const comps = [battery, sw, diode, ind, cap];
+  $('components').innerHTML = comps.map(c=>`
+    <div class="comp"><div class="tag">${c.tag}</div><div class="body"><b>${c.name}</b><div class="d">${c.d}</div></div></div>
+  `).join('');
+
+  drawSchematic();
+}
+
+function drawSchematic(){
+  const svg = $('schematic');
+  const wire = 'var(--wire)';
+  let html = '';
+  const src = `<line x1="30" y1="60" x2="30" y2="140" stroke="${wire}" stroke-width="2.5"/>
+    <line x1="18" y1="85" x2="42" y2="85" stroke="${wire}" stroke-width="3"/>
+    <line x1="22" y1="93" x2="38" y2="93" stroke="${wire}" stroke-width="1.5"/>
+    <line x1="18" y1="115" x2="42" y2="115" stroke="${wire}" stroke-width="3"/>
+    <line x1="22" y1="123" x2="38" y2="123" stroke="${wire}" stroke-width="1.5"/>
+    <text x="30" y="105" text-anchor="middle" class="lbl-sub" fill="#8b93a7">Vin</text>`;
+
+  const load = `<rect x="330" y="80" width="26" height="45" rx="3" fill="none" stroke="${wire}" stroke-width="2"/>
+    <text x="343" y="75" text-anchor="middle" class="lbl-sub" fill="#8b93a7">Load</text>`;
+
+  if(topo==='buck'){
+    html = src + `
+    <line x1="30" y1="60" x2="110" y2="60" stroke="${wire}" stroke-width="2.5"/>
+    <circle cx="120" cy="60" r="4" fill="#e2e8f0"/><text x="120" y="50" text-anchor="middle" class="lbl-sub" fill="#e2e8f0">S</text>
+    <path d="M150,60 q8,-14 16,0 q8,-14 16,0 q8,-14 16,0" fill="none" stroke="${wire}" stroke-width="2.5"/>
+    <text x="182" y="35" text-anchor="middle" class="lbl-sub" fill="#8b93a7">L</text>
+    <line x1="198" y1="60" x2="330" y2="60" stroke="${wire}" stroke-width="2.5"/>
+    <line x1="120" y1="64" x2="120" y2="95" stroke="${wire}" stroke-width="2.5"/>
+    <polygon points="112,95 128,95 120,110" fill="${wire}"/>
+    <text x="105" y="102" text-anchor="middle" class="lbl-sub" fill="#8b93a7">D</text>
+    <line x1="120" y1="110" x2="120" y2="140" stroke="${wire}" stroke-width="2.5"/>
+    <line x1="30" y1="140" x2="330" y2="140" stroke="${wire}" stroke-width="2.5"/>
+    <line x1="270" y1="60" x2="270" y2="140" stroke="${wire}" stroke-width="2"/>
+    <text x="255" y="100" text-anchor="middle" class="lbl-sub" fill="#8b93a7">C</text>` + load;
+  } else if(topo==='boost'){
+    html = src + `
+    <line x1="30" y1="60" x2="90" y2="60" stroke="${wire}" stroke-width="2.5"/>
+    <path d="M90,60 q8,-14 16,0 q8,-14 16,0 q8,-14 16,0" fill="none" stroke="${wire}" stroke-width="2.5"/>
+    <text x="122" y="35" text-anchor="middle" class="lbl-sub" fill="#8b93a7">L</text>
+    <line x1="138" y1="60" x2="170" y2="60" stroke="${wire}" stroke-width="2.5"/>
+    <circle cx="170" cy="60" r="4" fill="#e2e8f0"/>
+    <polygon points="185,52 185,68 210,60" fill="${wire}"/>
+    <text x="197" y="42" text-anchor="middle" class="lbl-sub" fill="#8b93a7">D</text>
+    <line x1="210" y1="60" x2="330" y2="60" stroke="${wire}" stroke-width="2.5"/>
+    <line x1="170" y1="64" x2="170" y2="100" stroke="${wire}" stroke-width="2.5"/>
+    <line x1="158" y1="100" x2="182" y2="112" stroke="#ef4444" stroke-width="2.5"/>
+    <text x="185" y="105" class="lbl-sub" fill="#8b93a7">S</text>
+    <line x1="170" y1="112" x2="170" y2="140" stroke="${wire}" stroke-width="2.5"/>
+    <line x1="30" y1="140" x2="330" y2="140" stroke="${wire}" stroke-width="2.5"/>
+    <line x1="270" y1="60" x2="270" y2="140" stroke="${wire}" stroke-width="2"/>
+    <text x="255" y="100" text-anchor="middle" class="lbl-sub" fill="#8b93a7">C</text>` + load;
+  } else if(topo==='buckboost'){
+    html = src + `
+    <line x1="30" y1="60" x2="110" y2="60" stroke="${wire}" stroke-width="2.5"/>
+    <circle cx="120" cy="60" r="4" fill="#e2e8f0"/><text x="120" y="50" text-anchor="middle" class="lbl-sub" fill="#e2e8f0">S</text>
+    <line x1="130" y1="60" x2="170" y2="60" stroke="${wire}" stroke-width="2.5"/>
+    <polygon points="185,52 220,52 220,68" fill="${wire}"/>
+    <text x="197" y="42" text-anchor="middle" class="lbl-sub" fill="#8b93a7">D</text>
+    <line x1="220" y1="60" x2="330" y2="60" stroke="${wire}" stroke-width="2.5"/>
+    <path d="M170,60 q8,14 0,28 q8,14 0,28" fill="none" stroke="${wire}" stroke-width="2.5"/>
+    <text x="150" y="90" text-anchor="middle" class="lbl-sub" fill="#8b93a7">L</text>
+    <line x1="30" y1="140" x2="330" y2="140" stroke="${wire}" stroke-width="2.5"/>
+    <line x1="270" y1="60" x2="270" y2="140" stroke="${wire}" stroke-width="2"/>
+    <text x="255" y="100" text-anchor="middle" class="lbl-sub" fill="#8b93a7">C</text>
+    <text x="343" y="140" text-anchor="middle" class="lbl-sub" fill="#8b93a7">(inverted)</text>` + load;
+  } else { // flyback
+    html = src + `
+    <line x1="30" y1="60" x2="90" y2="60" stroke="${wire}" stroke-width="2.5"/>
+    <circle cx="90" cy="60" r="4" fill="#e2e8f0"/><text x="90" y="50" text-anchor="middle" class="lbl-sub" fill="#e2e8f0">S</text>
+    <path d="M100,64 q6,10 0,20 q6,10 0,20 q6,10 0,20" fill="none" stroke="${wire}" stroke-width="2.5"/>
+    <line x1="100" y1="124" x2="100" y2="140" stroke="${wire}" stroke-width="2.5"/>
+    <text x="80" y="100" text-anchor="middle" class="lbl-sub" fill="#8b93a7">Np</text>
+    <line x1="140" y1="55" x2="140" y2="145" stroke="#8b93a7" stroke-width="1.2" stroke-dasharray="4,3" opacity="0.6"/>
+    <path d="M170,64 q6,10 0,20 q6,10 0,20 q6,10 0,20" fill="none" stroke="${wire}" stroke-width="2.5"/>
+    <line x1="170" y1="64" x2="170" y2="60" stroke="${wire}" stroke-width="2.5"/>
+    <text x="190" y="100" text-anchor="middle" class="lbl-sub" fill="#8b93a7">Ns</text>
+    <line x1="170" y1="60" x2="200" y2="60" stroke="${wire}" stroke-width="2.5"/>
+    <polygon points="200,52 200,68 220,60" fill="${wire}"/>
+    <line x1="220" y1="60" x2="330" y2="60" stroke="${wire}" stroke-width="2.5"/>
+    <text x="210" y="42" text-anchor="middle" class="lbl-sub" fill="#8b93a7">D</text>
+    <line x1="30" y1="140" x2="100" y2="140" stroke="${wire}" stroke-width="2.5"/>
+    <line x1="170" y1="124" x2="170" y2="140" stroke="${wire}" stroke-width="2.5"/>
+    <line x1="170" y1="140" x2="330" y2="140" stroke="${wire}" stroke-width="2.5"/>
+    <line x1="270" y1="60" x2="270" y2="140" stroke="${wire}" stroke-width="2"/>
+    <text x="255" y="100" text-anchor="middle" class="lbl-sub" fill="#8b93a7">C</text>` + load;
+  }
+  svg.innerHTML = html;
+}
+
+compute();
+</script>
+</body>
+</html>

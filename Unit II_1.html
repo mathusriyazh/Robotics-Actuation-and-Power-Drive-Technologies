@@ -1,0 +1,4808 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>
+Unit II – Power Supply Design for Robotics Subsystems
+</title>
+
+<style>
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+*{
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    margin:0;
+    background:#0b1120;
+    color:#e5e7eb;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
+}
+
+.wrapper{
+    max-width:1400px;
+    margin:auto;
+    padding:20px;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.header{
+    background:
+        linear-gradient(
+            135deg,
+            #172554,
+            #1e3a8a,
+            #0369a1
+        );
+
+    padding:30px 20px;
+
+    border-radius:18px;
+
+    margin-bottom:18px;
+
+    text-align:center;
+
+    box-shadow:
+        0 10px 30px rgba(0,0,0,.35);
+}
+
+.header h1{
+    margin:0;
+    font-size:30px;
+}
+
+.header p{
+    margin:8px 0 0;
+    color:#cbd5e1;
+}
+
+
+/* =========================================================
+   TABS
+========================================================= */
+
+.tab-container{
+    background:#111827;
+    border:1px solid #26324a;
+    border-radius:15px;
+    overflow:hidden;
+}
+
+.tabs{
+    display:flex;
+    overflow-x:auto;
+    background:#070d1a;
+}
+
+.tab{
+    border:0;
+    background:#070d1a;
+    color:#94a3b8;
+    padding:16px 22px;
+    cursor:pointer;
+    font-weight:700;
+    white-space:nowrap;
+}
+
+.tab:hover{
+    background:#1e293b;
+    color:white;
+}
+
+.tab.active{
+    background:#2563eb;
+    color:white;
+}
+
+.content{
+    display:none;
+    padding:25px;
+}
+
+.content.active{
+    display:block;
+    animation:fade .3s ease;
+}
+
+@keyframes fade{
+
+    from{
+        opacity:0;
+        transform:translateY(8px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+
+}
+
+
+/* =========================================================
+   HEADINGS
+========================================================= */
+
+h2{
+    border-left:5px solid #38bdf8;
+    padding-left:12px;
+    color:#f8fafc;
+}
+
+h3{
+    color:#7dd3fc;
+}
+
+
+/* =========================================================
+   CARDS
+========================================================= */
+
+.grid{
+    display:grid;
+    grid-template-columns:
+        repeat(auto-fit,minmax(240px,1fr));
+
+    gap:15px;
+}
+
+.card{
+    background:#111827;
+    border:1px solid #26324a;
+    border-radius:12px;
+    padding:18px;
+}
+
+.card:hover{
+    border-color:#38bdf8;
+}
+
+
+/* =========================================================
+   CONTROL PANEL
+========================================================= */
+
+.controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:15px;
+    align-items:center;
+}
+
+.control{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+}
+
+.control label{
+    color:#94a3b8;
+    font-size:13px;
+}
+
+input[type=number],
+input[type=range],
+select{
+    background:#020617;
+    color:#e5e7eb;
+    border:1px solid #334155;
+    border-radius:7px;
+    padding:8px;
+}
+
+input[type=range]{
+    accent-color:#38bdf8;
+}
+
+button.action{
+    background:#2563eb;
+    color:white;
+    border:0;
+    padding:10px 17px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:700;
+}
+
+button.action:hover{
+    background:#1d4ed8;
+}
+
+
+/* =========================================================
+   DISPLAY
+========================================================= */
+
+.readout{
+    display:grid;
+    grid-template-columns:
+        repeat(auto-fit,minmax(150px,1fr));
+
+    gap:12px;
+
+    margin-top:15px;
+}
+
+.readout-box{
+    background:#020617;
+    border:1px solid #334155;
+    padding:13px;
+    border-radius:9px;
+}
+
+.readout-box .title{
+    color:#64748b;
+    font-size:12px;
+}
+
+.readout-box .value{
+    font-size:20px;
+    font-weight:700;
+    color:#38bdf8;
+}
+
+
+/* =========================================================
+   SVG
+========================================================= */
+
+.diagram{
+    background:#020617;
+    border:1px solid #26324a;
+    border-radius:12px;
+    margin:18px 0;
+    overflow:hidden;
+}
+
+svg{
+    width:100%;
+    height:auto;
+    display:block;
+}
+
+.svg-label{
+    fill:#e5e7eb;
+    font-size:15px;
+    font-weight:600;
+}
+
+.svg-small{
+    fill:#94a3b8;
+    font-size:12px;
+}
+
+
+/* =========================================================
+   CANVAS
+========================================================= */
+
+.canvas{
+    background:#020617;
+    border:1px solid #26324a;
+    border-radius:12px;
+    padding:8px;
+    margin:18px 0;
+}
+
+canvas{
+    display:block;
+    width:100%;
+    height:280px;
+}
+
+
+/* =========================================================
+   FORMULA
+========================================================= */
+
+.formula{
+    background:#020617;
+    border:1px solid #334155;
+    border-radius:9px;
+    padding:15px;
+    text-align:center;
+    font-family:
+        "Courier New",
+        monospace;
+    font-size:17px;
+    color:#7dd3fc;
+    margin:15px 0;
+}
+
+
+/* =========================================================
+   INFO BOX
+========================================================= */
+
+.info{
+    background:#082f49;
+    border-left:5px solid #38bdf8;
+    padding:14px;
+    border-radius:7px;
+    margin:15px 0;
+}
+
+.warning{
+    background:#431407;
+    border-left:5px solid #f97316;
+    padding:14px;
+    border-radius:7px;
+}
+
+.success{
+    background:#052e16;
+    border-left:5px solid #22c55e;
+    padding:14px;
+    border-radius:7px;
+}
+
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin:18px 0;
+}
+
+th,
+td{
+    border:1px solid #334155;
+    padding:10px;
+}
+
+th{
+    background:#1e293b;
+    color:#7dd3fc;
+}
+
+
+/* =========================================================
+   FLOW
+========================================================= */
+
+.flow{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin:20px 0;
+}
+
+.flow-box{
+    background:#172554;
+    border:2px solid #2563eb;
+    border-radius:10px;
+    padding:15px 20px;
+    font-weight:bold;
+    text-align:center;
+}
+
+.arrow{
+    color:#38bdf8;
+    font-size:25px;
+}
+
+
+/* =========================================================
+   APPLICATION CARDS
+========================================================= */
+
+.application{
+    min-height:180px;
+}
+
+.application h3{
+    margin-top:0;
+}
+
+.application .power{
+    color:#fbbf24;
+    font-size:22px;
+    font-weight:bold;
+}
+
+
+/* =========================================================
+   QUIZ
+========================================================= */
+
+.quiz{
+    background:#111827;
+    border:1px solid #334155;
+    border-radius:10px;
+    padding:18px;
+    margin:15px 0;
+}
+
+.quiz label{
+    display:block;
+    padding:6px;
+}
+
+#quizResult{
+    margin-top:15px;
+    font-size:20px;
+    font-weight:bold;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+footer{
+    text-align:center;
+    color:#64748b;
+    padding:25px;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media(max-width:700px){
+
+    .wrapper{
+        padding:10px;
+    }
+
+    .header h1{
+        font-size:23px;
+    }
+
+    .content{
+        padding:15px;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="wrapper">
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<div class="header">
+
+<h1>
+UNIT – II
+</h1>
+
+<h2 style="border:0;padding:0;color:white">
+
+Power Supply Design for Robotics Subsystems
+
+</h2>
+
+<p>
+Buck Converter • Buck-Boost Converter • Isolated DC-DC •
+Bidirectional DC-DC
+</p>
+
+</div>
+
+
+<!-- =====================================================
+     TAB CONTAINER
+===================================================== -->
+
+<div class="tab-container">
+
+
+<div class="tabs">
+
+<button class="tab active"
+onclick="openTab('buck',this)">
+01. Buck Converter
+</button>
+
+<button class="tab"
+onclick="openTab('buckboost',this)">
+02. Buck-Boost
+</button>
+
+<button class="tab"
+onclick="openTab('isolated',this)">
+03. Isolated DC-DC
+</button>
+
+<button class="tab"
+onclick="openTab('bidirectional',this)">
+04. Bidirectional
+</button>
+
+<button class="tab"
+onclick="openTab('applications',this)">
+05. Robotics Applications
+</button>
+
+<button class="tab"
+onclick="openTab('design',this)">
+06. Design Calculator
+</button>
+
+<button class="tab"
+onclick="openTab('quiz',this)">
+07. Assessment
+</button>
+
+</div>
+
+
+<!-- =====================================================
+     BUCK CONVERTER
+===================================================== -->
+
+<section
+id="buck"
+class="content active">
+
+<h2>
+1. Design of Buck Converter
+</h2>
+
+<p>
+
+A buck converter is a DC-DC converter used to reduce a higher
+DC voltage to a lower regulated DC voltage. It is widely used
+for sensors, controllers, motor drivers, actuators and AI
+processor power supplies in robots.
+
+</p>
+
+
+<div class="grid">
+
+<div class="card application">
+
+<h3>
+Sensor Supply
+</h3>
+
+<div class="power">
+48 V → 5 V
+</div>
+
+<p>
+Low-voltage supply for sensors and measurement circuits.
+</p>
+
+</div>
+
+
+<div class="card application">
+
+<h3>
+Controller Board
+</h3>
+
+<div class="power">
+48 V → 12 V
+</div>
+
+<p>
+Power supply for microcontrollers and control electronics.
+</p>
+
+</div>
+
+
+<div class="card application">
+
+<h3>
+AI Processor
+</h3>
+
+<div class="power">
+48 V → 12 V / 5 V
+</div>
+
+<p>
+Provides regulated supply to embedded AI computing systems.
+</p>
+
+</div>
+
+
+<div class="card application">
+
+<h3>
+Motor Driver</h3>
+
+<div class="power">
+48 V → 24 V
+</div>
+
+<p>
+Auxiliary power for gate drivers and motor-control electronics.
+</p>
+
+</div>
+
+</div>
+
+
+<h3>
+Interactive Buck Converter
+</h3>
+
+
+<div class="card">
+
+<div class="controls">
+
+<div class="control">
+
+<label>
+Input Voltage
+</label>
+
+<input
+type="number"
+id="buckVin"
+value="48"
+min="5"
+max="100">
+
+</div>
+
+
+<div class="control">
+
+<label>
+Output Voltage
+</label>
+
+<input
+type="number"
+id="buckVout"
+value="12"
+min="1"
+max="90">
+
+</div>
+
+
+<div class="control">
+
+<label>
+Switching Frequency (kHz)
+</label>
+
+<input
+type="number"
+id="buckFreq"
+value="50"
+min="10"
+max="500">
+
+</div>
+
+
+<div class="control">
+
+<label>
+Load Resistance (Ω)
+</label>
+
+<input
+type="number"
+id="buckR"
+value="6"
+min="0.5"
+max="100">
+
+</div>
+
+
+<button
+class="action"
+onclick="updateBuck()">
+
+Update Buck
+
+</button>
+
+<button
+class="action"
+onclick="toggleBuck()">
+
+▶ Start / Pause
+
+</button>
+
+</div>
+
+</div>
+
+
+<div class="diagram">
+
+<svg
+viewBox="0 0 1100 430">
+
+<defs>
+
+<marker
+id="buckArrow"
+markerWidth="10"
+markerHeight="10"
+refX="8"
+refY="3"
+orient="auto">
+
+<path
+d="M0,0 L0,6 L9,3 Z"
+fill="#38bdf8"/>
+
+</marker>
+
+</defs>
+
+
+<!-- SOURCE -->
+
+<rect
+x="40"
+y="160"
+width="140"
+height="100"
+rx="12"
+fill="#172554"
+stroke="#38bdf8"
+stroke-width="3"/>
+
+<text
+x="110"
+y="205"
+text-anchor="middle"
+class="svg-label">
+
+DC Source
+
+</text>
+
+<text
+x="110"
+y="230"
+text-anchor="middle"
+class="svg-small"
+id="buckVinSVG">
+
+48 V
+
+</text>
+
+
+<!-- SWITCH -->
+
+<rect
+x="260"
+y="160"
+width="120"
+height="100"
+rx="10"
+fill="#1e293b"
+stroke="#22c55e"
+stroke-width="3"/>
+
+<text
+x="320"
+y="205"
+text-anchor="middle"
+class="svg-label">
+
+MOSFET
+
+</text>
+
+<text
+x="320"
+y="230"
+text-anchor="middle"
+class="svg-small">
+
+PWM Switch
+
+</text>
+
+
+<!-- INDUCTOR -->
+
+<path
+d="
+M440 210
+q10 -30 20 0
+q10 -30 20 0
+q10 -30 20 0
+q10 -30 20 0
+"
+fill="none"
+stroke="#f59e0b"
+stroke-width="4"/>
+
+<text
+x="480"
+y="175"
+text-anchor="middle"
+class="svg-label">
+
+L
+
+</text>
+
+
+<!-- CAPACITOR -->
+
+<line
+x1="630"
+y1="180"
+x2="630"
+y2="245"
+stroke="#38bdf8"
+stroke-width="5"/>
+
+<line
+x1="650"
+y1="180"
+x2="650"
+y2="245"
+stroke="#38bdf8"
+stroke-width="5"/>
+
+<text
+x="640"
+y="160"
+text-anchor="middle"
+class="svg-label">
+
+C
+
+</text>
+
+
+<!-- LOAD -->
+
+<rect
+x="770"
+y="170"
+width="100"
+height="90"
+rx="8"
+fill="#1e293b"
+stroke="#a78bfa"
+stroke-width="3"/>
+
+<text
+x="820"
+y="210"
+text-anchor="middle"
+class="svg-label">
+
+R Load
+
+</text>
+
+<text
+x="820"
+y="235"
+text-anchor="middle"
+class="svg-small">
+
+Load
+
+</text>
+
+
+<!-- WIRES -->
+
+<line
+x1="180"
+y1="210"
+x2="260"
+y2="210"
+stroke="#38bdf8"
+stroke-width="4"
+marker-end="url(#buckArrow)"/>
+
+<line
+x1="380"
+y1="210"
+x2="440"
+y2="210"
+stroke="#38bdf8"
+stroke-width="4"
+marker-end="url(#buckArrow)"/>
+
+<line
+x1="500"
+y1="210"
+x2="630"
+y2="210"
+stroke="#38bdf8"
+stroke-width="4"
+marker-end="url(#buckArrow)"/>
+
+<line
+x1="650"
+y1="210"
+x2="770"
+y2="210"
+stroke="#38bdf8"
+stroke-width="4"
+marker-end="url(#buckArrow)"/>
+
+
+<!-- GROUND -->
+
+<line
+x1="110"
+y1="260"
+x2="110"
+y2="340"
+stroke="#64748b"
+stroke-width="3"/>
+
+<line
+x1="110"
+y1="340"
+x2="820"
+y2="340"
+stroke="#64748b"
+stroke-width="3"/>
+
+<line
+x1="820"
+y1="260"
+x2="820"
+y2="340"
+stroke="#64748b"
+stroke-width="3"/>
+
+
+<!-- PWM -->
+
+<text
+x="320"
+y="130"
+text-anchor="middle"
+class="svg-small"
+id="buckDutySVG">
+
+D = 25%
+
+</text>
+
+</svg>
+
+</div>
+
+
+<div class="readout">
+
+<div class="readout-box">
+
+<div class="title">
+Duty Ratio
+</div>
+
+<div
+class="value"
+id="buckDuty">
+
+25.0 %
+
+</div>
+
+</div>
+
+
+<div class="readout-box">
+
+<div class="title">
+Output Power
+</div>
+
+<div
+class="value"
+id="buckPower">
+
+24.0 W
+
+</div>
+
+</div>
+
+
+<div class="readout-box">
+
+<div class="title">
+Output Current
+</div>
+
+<div
+class="value"
+id="buckCurrent">
+
+2.00 A
+
+</div>
+
+</div>
+
+
+<div class="readout-box">
+
+<div class="title">
+Inductor
+
+</div>
+
+<div
+class="value"
+id="buckInductor">
+
+--
+
+</div>
+
+</div>
+
+
+<div class="readout-box">
+
+<div class="title">
+Capacitor
+
+</div>
+
+<div
+class="value"
+id="buckCapacitor">
+
+--
+
+</div>
+
+</div>
+
+</div>
+
+
+<h3>
+Buck Converter Waveforms
+</h3>
+
+
+<div class="canvas">
+
+<canvas
+id="buckCanvas">
+</canvas>
+
+</div>
+
+
+<div class="formula">
+
+V<sub>o</sub> = D V<sub>in</sub>
+
+<br><br>
+
+D = V<sub>o</sub> / V<sub>in</sub>
+
+</div>
+
+
+<div class="formula">
+
+L =
+[(V<sub>in</sub> − V<sub>o</sub>)D]
+/
+[f<sub>s</sub> ΔI<sub>L</sub>]
+
+</div>
+
+
+<div class="formula">
+
+C ≈ ΔI<sub>L</sub>
+/
+(8 f<sub>s</sub> ΔV<sub>o</sub>)
+
+</div>
+
+
+<div class="info">
+
+<b>Design guideline:</b>
+
+For robotics power supplies, an inductor ripple current of
+approximately 20–40% of the output current is commonly used
+as a starting design target.
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     BUCK BOOST
+===================================================== -->
+
+<section
+id="buckboost"
+class="content">
+
+<h2>
+2. Buck-Boost Converter for Drones, Humanoids and AGVs
+</h2>
+
+<p>
+
+A buck-boost converter is useful when the battery voltage can
+be either higher or lower than the required regulated voltage.
+
+</p>
+
+
+<div class="grid">
+
+<div class="card">
+
+<h3>
+Drone</h3>
+
+<p>
+Battery voltage changes considerably during discharge.
+A buck-boost stage can maintain a regulated supply for
+electronics.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Humanoid Robot</h3>
+
+<p>
+The battery voltage varies while servo motors create rapidly
+changing loads.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+AGV</h3>
+
+<p>
+A wide battery voltage range can be converted to a stable
+DC-link or auxiliary supply.
+</p>
+
+</div>
+
+</div>
+
+
+<h3>
+Interactive Buck-Boost Design
+</h3>
+
+
+<div class="card">
+
+<div class="controls">
+
+<div class="control">
+
+<label>
+Input Voltage (V)
+</label>
+
+<input
+type="number"
+id="bbVin"
+value="24">
+
+</div>
+
+
+<div class="control">
+
+<label>
+Duty Ratio
+</label>
+
+<input
+type="range"
+id="bbDuty"
+min="0.05"
+max="0.85"
+step="0.01"
+value="0.50">
+
+</div>
+
+
+<div class="control">
+
+<label>
+Load (Ω)
+</label>
+
+<input
+type="number"
+id="bbR"
+value="12">
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="readout">
+
+<div class="readout-box">
+
+<div class="title">
+Duty Ratio
+</div>
+
+<div
+class="value"
+id="bbDutyValue">
+
+50 %
+
+</div>
+
+</div>
+
+
+<div class="readout-box">
+
+<div class="title">
+Output Voltage
+</div>
+
+<div
+class="value"
+id="bbVout">
+
+24.0 V
+
+</div>
+
+</div>
+
+
+<div class="readout-box">
+
+<div class="title">
+Output Current
+</div>
+
+<div
+class="value"
+id="bbIout">
+
+2.00 A
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="diagram">
+
+<svg viewBox="0 0 1100 450">
+
+<defs>
+
+<marker
+id="bbArrow"
+markerWidth="10"
+markerHeight="10"
+refX="8"
+refY="3"
+orient="auto">
+
+<path
+d="M0,0 L0,6 L9,3 Z"
+fill="#38bdf8"/>
+
+</marker>
+
+</defs>
+
+
+<rect
+x="50"
+y="170"
+width="150"
+height="90"
+rx="10"
+fill="#172554"
+stroke="#38bdf8"
+stroke-width="3"/>
+
+<text
+x="125"
+y="210"
+text-anchor="middle"
+class="svg-label">
+
+Battery
+
+</text>
+
+<text
+x="125"
+y="235"
+text-anchor="middle"
+class="svg-small">
+
+Variable DC
+
+</text>
+
+
+<path
+d="
+M280 215
+q10 -30 20 0
+q10 -30 20 0
+q10 -30 20 0
+q10 -30 20 0
+"
+fill="none"
+stroke="#f59e0b"
+stroke-width="4"/>
+
+<text
+x="330"
+y="175"
+text-anchor="middle"
+class="svg-label">
+
+Inductor
+
+</text>
+
+
+<rect
+x="450"
+y="170"
+width="120"
+height="90"
+rx="10"
+fill="#1e293b"
+stroke="#22c55e"
+stroke-width="3"/>
+
+<text
+x="510"
+y="210"
+text-anchor="middle"
+class="svg-label">
+
+Switch
+
+</text>
+
+<text
+x="510"
+y="235"
+text-anchor="middle"
+class="svg-small">
+
+PWM
+
+</text>
+
+
+<polygon
+points="650,200 650,230 690,215"
+fill="#38bdf8"/>
+
+<line
+x1="690"
+y1="195"
+x2="690"
+y2="235"
+stroke="#38bdf8"
+stroke-width="4"/>
+
+<text
+x="670"
+y="175"
+text-anchor="middle"
+class="svg-label">
+
+Diode
+
+</text>
+
+
+<rect
+x="790"
+y="170"
+width="150"
+height="90"
+rx="10"
+fill="#172554"
+stroke="#a78bfa"
+stroke-width="3"/>
+
+<text
+x="865"
+y="210"
+text-anchor="middle"
+class="svg-label">
+
+Load
+
+</text>
+
+<text
+x="865"
+y="235"
+text-anchor="middle"
+class="svg-small">
+
+Vout
+
+</text>
+
+
+<line
+x1="200"
+y1="215"
+x2="280"
+y2="215"
+stroke="#38bdf8"
+stroke-width="4"
+marker-end="url(#bbArrow)"/>
+
+<line
+x1="380"
+y1="215"
+x2="450"
+y2="215"
+stroke="#38bdf8"
+stroke-width="4"
+marker-end="url(#bbArrow)"/>
+
+<line
+x1="570"
+y1="215"
+x2="650"
+y2="215"
+stroke="#38bdf8"
+stroke-width="4"
+marker-end="url(#bbArrow)"/>
+
+<line
+x1="690"
+y1="215"
+x2="790"
+y2="215"
+stroke="#38bdf8"
+stroke-width="4"
+marker-end="url(#bbArrow)"/>
+
+</svg>
+
+</div>
+
+
+<div class="canvas">
+
+<canvas
+id="bbCanvas">
+</canvas>
+
+</div>
+
+
+<div class="formula">
+
+|V<sub>o</sub>| =
+[D/(1−D)] V<sub>in</sub>
+
+</div>
+
+
+<div class="info">
+
+<b>Important:</b>
+
+The classical single-switch buck-boost converter produces an
+inverted output polarity. Practical robotic systems often use
+non-inverting buck-boost topologies when the load must retain
+the same polarity as the battery.
+
+</div>
+
+
+<h3>
+Operating Regions
+</h3>
+
+
+<table>
+
+<tr>
+<th>Condition</th>
+<th>Converter Action</th>
+</tr>
+
+<tr>
+<td>Vout &lt; Vin</td>
+<td>Buck operation</td>
+</tr>
+
+<tr>
+<td>Vout &gt; Vin</td>
+<td>Boost operation</td>
+</tr>
+
+<tr>
+<td>Variable Vin</td>
+<td>Automatic regulation</td>
+</tr>
+
+</table>
+
+</section>
+
+
+<!-- =====================================================
+     ISOLATED DC-DC
+===================================================== -->
+
+<section
+id="isolated"
+class="content">
+
+<h2>
+3. Isolated DC-DC Converter for ESC and Industrial Robots
+</h2>
+
+<p>
+
+An isolated DC-DC converter transfers electrical energy while
+providing galvanic isolation between input and output.
+
+A high-frequency transformer is generally used for energy
+transfer.
+
+</p>
+
+
+<div class="grid">
+
+<div class="card">
+
+<h3>
+ESC Power Supply</h3>
+
+<p>
+
+An isolated supply can provide a protected low-voltage
+control/gate-driver supply for an electronic speed controller.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Industrial Robot</h3>
+
+<p>
+
+Isolation can separate high-power motor circuits from sensitive
+control and communication electronics.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Safety</h3>
+
+<p>
+
+Galvanic isolation prevents a direct conductive path between
+the two electrical domains.
+
+</p>
+
+</div>
+
+</div>
+
+
+<h3>
+Isolated Converter Structure
+</h3>
+
+
+<div class="diagram">
+
+<svg viewBox="0 0 1200 500">
+
+<defs>
+
+<marker
+id="isoArrow"
+markerWidth="10"
+markerHeight="10"
+refX="8"
+refY="3"
+orient="auto">
+
+<path
+d="M0,0 L0,6 L9,3 Z"
+fill="#38bdf8"/>
+
+</marker>
+
+</defs>
+
+
+<rect
+x="40"
+y="190"
+width="160"
+height="100"
+rx="12"
+fill="#172554"
+stroke="#38bdf8"
+stroke-width="3"/>
+
+<text
+x="120"
+y="235"
+text-anchor="middle"
+class="svg-label">
+
+DC Input
+
+</text>
+
+<text
+x="120"
+y="260"
+text-anchor="middle"
+class="svg-small">
+
+Battery
+
+</text>
+
+
+<rect
+x="280"
+y="170"
+width="170"
+height="140"
+rx="12"
+fill="#1e293b"
+stroke="#22c55e"
+stroke-width="3"/>
+
+<text
+x="365"
+y="220"
+text-anchor="middle"
+class="svg-label">
+
+PWM Switch
+
+</text>
+
+<text
+x="365"
+y="250"
+text-anchor="middle"
+class="svg-small">
+
+MOSFET
+
+</text>
+
+<text
+x="365"
+y="275"
+text-anchor="middle"
+class="svg-small">
+
+High Frequency
+
+</text>
+
+
+<!-- TRANSFORMER -->
+
+<line
+x1="590"
+y1="130"
+x2="590"
+y2="350"
+stroke="#94a3b8"
+stroke-width="5"/>
+
+<line
+x1="620"
+y1="130"
+x2="620"
+y2="350"
+stroke="#94a3b8"
+stroke-width="5"/>
+
+
+<path
+d="
+M550 155
+C510 175 510 205 550 225
+C590 245 590 275 550 295
+C510 315 510 335 550 345
+"
+fill="none"
+stroke="#38bdf8"
+stroke-width="5"/>
+
+
+<path
+d="
+M660 155
+C700 175 700 205 660 225
+C620 245 620 275 660 295
+C700 315 700 335 660 345
+"
+fill="none"
+stroke="#f59e0b"
+stroke-width="5"/>
+
+
+<text
+x="605"
+y="390"
+text-anchor="middle"
+class="svg-label">
+
+HIGH-FREQUENCY TRANSFORMER
+
+</text>
+
+<text
+x="605"
+y="415"
+text-anchor="middle"
+class="svg-small">
+
+GALVANIC ISOLATION
+
+</text>
+
+
+<rect
+x="760"
+y="170"
+width="160"
+height="140"
+rx="12"
+fill="#1e293b"
+stroke="#f59e0b"
+stroke-width="3"/>
+
+<text
+x="840"
+y="220"
+text-anchor="middle"
+class="svg-label">
+
+Rectifier
+
+</text>
+
+<text
+x="840"
+y="250"
+text-anchor="middle"
+class="svg-small">
+
+Diodes / MOSFET
+
+</text>
+
+<text
+x="840"
+y="275"
+text-anchor="middle"
+class="svg-small">
+
+Filtering
+
+</text>
+
+
+<rect
+x="1010"
+y="190"
+width="150"
+height="100"
+rx="12"
+fill="#052e16"
+stroke="#22c55e"
+stroke-width="3"/>
+
+<text
+x="1085"
+y="235"
+text-anchor="middle"
+class="svg-label">
+
+DC Output
+
+</text>
+
+<text
+x="1085"
+y="260"
+text-anchor="middle"
+class="svg-small">
+
+Isolated Load
+
+</text>
+
+
+<line
+x1="200"
+y1="240"
+x2="280"
+y2="240"
+stroke="#38bdf8"
+stroke-width="4"
+marker-end="url(#isoArrow)"/>
+
+<line
+x1="450"
+y1="240"
+x2="530"
+y2="240"
+stroke="#38bdf8"
+stroke-width="4"
+marker-end="url(#isoArrow)"/>
+
+<line
+x1="690"
+y1="240"
+x2="760"
+y2="240"
+stroke="#38bdf8"
+stroke-width="4"
+marker-end="url(#isoArrow)"/>
+
+<line
+x1="920"
+y1="240"
+x2="1010"
+y2="240"
+stroke="#38bdf8"
+stroke-width="4"
+marker-end="url(#isoArrow)"/>
+
+</svg>
+
+</div>
+
+
+<h3>
+Transformer Waveforms
+</h3>
+
+
+<div class="canvas">
+
+<canvas
+id="isoCanvas">
+</canvas>
+
+</div>
+
+
+<button
+class="action"
+onclick="toggleIso()">
+
+▶ Start / Pause Transformer
+
+</button>
+
+
+<h3>
+Advantages and Limitations
+</h3>
+
+
+<table>
+
+<tr>
+<th>Advantages</th>
+<th>Limitations</th>
+</tr>
+
+<tr>
+<td>Galvanic isolation</td>
+<td>Higher complexity</td>
+</tr>
+
+<tr>
+<td>Safety</td>
+<td>Transformer losses</td>
+</tr>
+
+<tr>
+<td>Ground separation</td>
+<td>Higher component count</td>
+</tr>
+
+<tr>
+<td>Different voltage ratios</td>
+<td>EMI considerations</td>
+</tr>
+
+</table>
+
+</section>
+
+
+<!-- =====================================================
+     BIDIRECTIONAL
+===================================================== -->
+
+<section
+id="bidirectional"
+class="content">
+
+<h2>
+4. Bidirectional DC-DC Converter
+</h2>
+
+<p>
+
+A bidirectional DC-DC converter allows power to flow in both
+directions between the battery and DC bus.
+
+This is particularly important in robotic systems using
+regenerative braking.
+
+</p>
+
+
+<div class="flow">
+
+<div class="flow-box">
+Battery
+</div>
+
+<div class="arrow">
+↔
+</div>
+
+<div class="flow-box">
+Bidirectional
+DC-DC
+</div>
+
+<div class="arrow">
+↔
+</div>
+
+<div class="flow-box">
+DC Bus
+</div>
+
+<div class="arrow">
+↔
+</div>
+
+<div class="flow-box">
+Motor Drive
+</div>
+
+</div>
+
+
+<h3>
+Operating Modes
+</h3>
+
+
+<div class="grid">
+
+<div class="card">
+
+<h3>
+Mode 1 – Motoring</h3>
+
+<p>
+
+Battery energy flows toward the DC bus and motor drive.
+
+</p>
+
+<div class="success">
+
+Battery → DC Bus → Motor
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Mode 2 – Regenerative Braking</h3>
+
+<p>
+
+Motor kinetic energy is converted back into electrical energy.
+
+</p>
+
+<div class="info">
+
+Motor → DC Bus → Battery
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Mode 3 – Battery Charging</h3>
+
+<p>
+
+The converter regulates current flowing from the DC bus
+toward the battery.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Mode 4 – Boost</h3>
+
+<p>
+
+Battery voltage can be boosted to the required DC bus voltage.
+
+</p>
+
+</div>
+
+</div>
+
+
+<h3>
+Interactive Bidirectional Energy Flow
+</h3>
+
+
+<div class="card">
+
+<div class="controls">
+
+<div class="control">
+
+<label>
+Battery Voltage
+</label>
+
+<input
+type="number"
+id="biBattery"
+value="36">
+
+</div>
+
+
+<div class="control">
+
+<label>
+DC Bus Voltage
+</label>
+
+<input
+type="number"
+id="biBus"
+value="48">
+
+</div>
+
+
+<div class="control">
+
+<label>
+Operating Mode
+</label>
+
+<select id="biMode">
+
+<option value="motoring">
+Motoring – Battery to Bus
+</option>
+
+<option value="regen">
+Regenerative Braking – Bus to Battery
+</option>
+
+</select>
+
+</div>
+
+
+<button
+class="action"
+onclick="updateBidirectional()">
+
+Update
+
+</button>
+
+</div>
+
+</div>
+
+
+<div class="diagram">
+
+<svg viewBox="0 0 1100 450">
+
+<defs>
+
+<marker
+id="biArrow"
+markerWidth="10"
+markerHeight="10"
+refX="8"
+refY="3"
+orient="auto">
+
+<path
+d="M0,0 L0,6 L9,3 Z"
+fill="#22c55e"/>
+
+</marker>
+
+</defs>
+
+
+<rect
+x="50"
+y="170"
+width="180"
+height="100"
+rx="12"
+fill="#172554"
+stroke="#38bdf8"
+stroke-width="3"/>
+
+<text
+x="140"
+y="215"
+text-anchor="middle"
+class="svg-label">
+
+BATTERY
+
+</text>
+
+<text
+x="140"
+y="240"
+text-anchor="middle"
+class="svg-small"
+id="biBatterySVG">
+
+36 V
+
+</text>
+
+
+<rect
+x="430"
+y="120"
+width="240"
+height="200"
+rx="15"
+fill="#1e293b"
+stroke="#f59e0b"
+stroke-width="4"/>
+
+<text
+x="550"
+y="180"
+text-anchor="middle"
+class="svg-label">
+
+BIDIRECTIONAL
+
+</text>
+
+<text
+x="550"
+y="210"
+text-anchor="middle"
+class="svg-label">
+
+DC-DC CONVERTER
+
+</text>
+
+<text
+x="550"
+y="245"
+text-anchor="middle"
+class="svg-small">
+
+Buck / Boost
+
+</text>
+
+<text
+x="550"
+y="270"
+text-anchor="middle"
+class="svg-small">
+
+Current Controlled
+
+</text>
+
+
+<rect
+x="870"
+y="170"
+width="180"
+height="100"
+rx="12"
+fill="#052e16"
+stroke="#22c55e"
+stroke-width="3"/>
+
+<text
+x="960"
+y="215"
+text-anchor="middle"
+class="svg-label">
+
+DC BUS
+
+</text>
+
+<text
+x="960"
+y="240"
+text-anchor="middle"
+class="svg-small"
+id="biBusSVG">
+
+48 V
+
+</text>
+
+
+<line
+id="biFlowLine"
+x1="230"
+y1="220"
+x2="430"
+y2="220"
+stroke="#22c55e"
+stroke-width="7"
+marker-end="url(#biArrow)"/>
+
+<line
+x1="670"
+y1="220"
+x2="870"
+y2="220"
+stroke="#22c55e"
+stroke-width="7"
+marker-end="url(#biArrow)"/>
+
+
+</svg>
+
+</div>
+
+
+<div class="canvas">
+
+<canvas
+id="biCanvas">
+</canvas>
+
+</div>
+
+
+<button
+class="action"
+onclick="toggleBiAnimation()">
+
+▶ Start Energy Flow
+
+</button>
+
+
+<div
+id="biExplanation"
+class="info">
+
+Battery → DC Bus → Motor Drive
+
+</div>
+
+
+<h3>
+Why Bidirectional Conversion is Important in Robotics
+</h3>
+
+<ul>
+
+<li>Regenerative braking</li>
+
+<li>Battery charging</li>
+
+<li>DC-bus voltage regulation</li>
+
+<li>Energy recovery</li>
+
+<li>Improved battery utilization</li>
+
+<li>Four-quadrant motor operation support</li>
+
+</ul>
+
+</section>
+
+
+<!-- =====================================================
+     APPLICATIONS
+===================================================== -->
+
+<section
+id="applications"
+class="content">
+
+<h2>
+5. Power Supply Design for Robotic Subsystems
+</h2>
+
+
+<div class="flow">
+
+<div class="flow-box">
+48 V Battery
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-box">
+DC Bus
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-box">
+DC-DC
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-box">
+Subsystems
+</div>
+
+</div>
+
+
+<table>
+
+<tr>
+<th>Subsystem</th>
+<th>Typical Supply</th>
+<th>Converter</th>
+<th>Reason</th>
+</tr>
+
+<tr>
+<td>Sensor</td>
+<td>5 V</td>
+<td>Buck</td>
+<td>Low-voltage regulated supply</td>
+</tr>
+
+<tr>
+<td>Controller</td>
+<td>12 V / 5 V</td>
+<td>Buck</td>
+<td>Stable electronics supply</td>
+</tr>
+
+<tr>
+<td>AI Processor</td>
+<td>12 V / 5 V</td>
+<td>Buck</td>
+<td>High-current regulated supply</td>
+</tr>
+
+<tr>
+<td>Motor Driver</td>
+<td>12–24 V</td>
+<td>Buck</td>
+<td>Gate-driver/control supply</td>
+</tr>
+
+<tr>
+<td>Drone</td>
+<td>Variable</td>
+<td>Buck-Boost</td>
+<td>Battery voltage variation</td>
+</tr>
+
+<tr>
+<td>Humanoid</td>
+<td>Variable</td>
+<td>Buck-Boost</td>
+<td>Large dynamic load</td>
+</tr>
+
+<tr>
+<td>AGV</td>
+<td>Variable</td>
+<td>Buck-Boost</td>
+<td>Wide battery voltage</td>
+</tr>
+
+<tr>
+<td>ESC</td>
+<td>Isolated</td>
+<td>Isolated DC-DC</td>
+<td>Electrical separation</td>
+</tr>
+
+<tr>
+<td>Regenerative Drive</td>
+<td>Battery/DC Bus</td>
+<td>Bidirectional</td>
+<td>Energy recovery</td>
+</tr>
+
+</table>
+
+
+<h3>
+Example Robot Power Architecture
+</h3>
+
+
+<div class="diagram">
+
+<svg viewBox="0 0 1200 600">
+
+<defs>
+
+<marker
+id="appArrow"
+markerWidth="10"
+markerHeight="10"
+refX="8"
+refY="3"
+orient="auto">
+
+<path
+d="M0,0 L0,6 L9,3 Z"
+fill="#38bdf8"/>
+
+</marker>
+
+</defs>
+
+
+<rect
+x="40"
+y="250"
+width="150"
+height="100"
+rx="12"
+fill="#172554"
+stroke="#38bdf8"
+stroke-width="3"/>
+
+<text
+x="115"
+y="295"
+text-anchor="middle"
+class="svg-label">
+
+48 V Battery
+
+</text>
+
+<text
+x="115"
+y="320"
+text-anchor="middle"
+class="svg-small">
+
+Energy Source
+
+</text>
+
+
+<rect
+x="270"
+y="220"
+width="190"
+height="160"
+rx="12"
+fill="#052e16"
+stroke="#22c55e"
+stroke-width="3"/>
+
+<text
+x="365"
+y="275"
+text-anchor="middle"
+class="svg-label">
+
+DC BUS
+
+</text>
+
+<text
+x="365"
+y="305"
+text-anchor="middle"
+class="svg-small">
+
+48 V
+
+</text>
+
+<text
+x="365"
+y="330"
+text-anchor="middle"
+class="svg-small">
+
+DC Link Capacitor
+
+</text>
+
+
+<rect
+x="550"
+y="60"
+width="190"
+height="80"
+rx="10"
+fill="#1e293b"
+stroke="#38bdf8"
+stroke-width="3"/>
+
+<text
+x="645"
+y="108"
+text-anchor="middle"
+class="svg-label">
+
+BUCK → Sensors
+
+</text>
+
+
+<rect
+x="550"
+y="180"
+width="190"
+height="80"
+rx="10"
+fill="#1e293b"
+stroke="#38bdf8"
+stroke-width="3"/>
+
+<text
+x="645"
+y="228"
+text-anchor="middle"
+class="svg-label">
+
+BUCK → Controller
+
+</text>
+
+
+<rect
+x="550"
+y="300"
+width="190"
+height="80"
+rx="10"
+fill="#1e293b"
+stroke="#f59e0b"
+stroke-width="3"/>
+
+<text
+x="645"
+y="348"
+text-anchor="middle"
+class="svg-label">
+
+BUCK-BOOST → AI
+
+</text>
+
+
+<rect
+x="550"
+y="420"
+width="190"
+height="80"
+rx="10"
+fill="#1e293b"
+stroke="#a78bfa"
+stroke-width="3"/>
+
+<text
+x="645"
+y="468"
+text-anchor="middle"
+class="svg-label">
+
+ISOLATED → ESC
+
+</text>
+
+
+<rect
+x="850"
+y="170"
+width="200"
+height="90"
+rx="10"
+fill="#052e16"
+stroke="#22c55e"
+stroke-width="3"/>
+
+<text
+x="950"
+y="220"
+text-anchor="middle"
+class="svg-label">
+
+Motor Drive
+
+</text>
+
+
+<rect
+x="850"
+y="330"
+width="200"
+height="90"
+rx="10"
+fill="#431407"
+stroke="#f59e0b"
+stroke-width="3"/>
+
+<text
+x="950"
+y="380"
+text-anchor="middle"
+class="svg-label">
+
+Bidirectional
+
+</text>
+
+
+<line
+x1="190"
+y1="300"
+x2="270"
+y2="300"
+stroke="#38bdf8"
+stroke-width="5"
+marker-end="url(#appArrow)"/>
+
+
+<line
+x1="460"
+y1="300"
+x2="550"
+y2="100"
+stroke="#38bdf8"
+stroke-width="3"
+marker-end="url(#appArrow)"/>
+
+<line
+x1="460"
+y1="300"
+x2="550"
+y2="220"
+stroke="#38bdf8"
+stroke-width="3"
+marker-end="url(#appArrow)"/>
+
+<line
+x1="460"
+y1="300"
+x2="550"
+y2="340"
+stroke="#38bdf8"
+stroke-width="3"
+marker-end="url(#appArrow)"/>
+
+<line
+x1="460"
+y1="300"
+x2="550"
+y2="460"
+stroke="#38bdf8"
+stroke-width="3"
+marker-end="url(#appArrow)"/>
+
+<line
+x1="740"
+y1="215"
+x2="850"
+y2="215"
+stroke="#38bdf8"
+stroke-width="3"
+marker-end="url(#appArrow)"/>
+
+<line
+x1="740"
+y1="460"
+x2="850"
+y2="375"
+stroke="#38bdf8"
+stroke-width="3"
+marker-end="url(#appArrow)"/>
+
+</svg>
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     DESIGN CALCULATOR
+===================================================== -->
+
+<section
+id="design"
+class="content">
+
+<h2>
+6. Power Converter Design Calculator
+</h2>
+
+
+<div class="card">
+
+<div class="controls">
+
+<div class="control">
+
+<label>
+Input Voltage (V)
+</label>
+
+<input
+type="number"
+id="calcVin"
+value="48">
+
+</div>
+
+
+<div class="control">
+
+<label>
+Output Voltage (V)
+</label>
+
+<input
+type="number"
+id="calcVout"
+value="12">
+
+</div>
+
+
+<div class="control">
+
+<label>
+Output Power (W)
+</label>
+
+<input
+type="number"
+id="calcPower"
+value="120">
+
+</div>
+
+
+<div class="control">
+
+<label>
+Efficiency (%)
+</label>
+
+<input
+type="number"
+id="calcEff"
+value="90">
+
+</div>
+
+
+<div class="control">
+
+<label>
+Switching Frequency (kHz)
+</label>
+
+<input
+type="number"
+id="calcFreq"
+value="50">
+
+</div>
+
+
+<button
+class="action"
+onclick="calculateDesign()">
+
+Calculate
+
+</button>
+
+</div>
+
+</div>
+
+
+<div class="readout">
+
+<div class="readout-box">
+
+<div class="title">
+Duty Ratio
+</div>
+
+<div
+id="calcDuty"
+class="value">
+
+--
+
+</div>
+
+</div>
+
+
+<div class="readout-box">
+
+<div class="title">
+Output Current
+</div>
+
+<div
+id="calcIo"
+class="value">
+
+--
+
+</div>
+
+</div>
+
+
+<div class="readout-box">
+
+<div class="title">
+Input Power
+</div>
+
+<div
+id="calcPin"
+class="value">
+
+--
+
+</div>
+
+</div>
+
+
+<div class="readout-box">
+
+<div class="title">
+Input Current
+</div>
+
+<div
+id="calcIin"
+class="value">
+
+--
+
+</div>
+
+</div>
+
+
+<div class="readout-box">
+
+<div class="title">
+Inductor
+
+</div>
+
+<div
+id="calcL"
+class="value">
+
+--
+
+</div>
+
+</div>
+
+
+<div class="readout-box">
+
+<div class="title">
+Capacitor
+
+</div>
+
+<div
+id="calcC"
+class="value">
+
+--
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="formula">
+
+D = V<sub>o</sub>/V<sub>in</sub>
+
+</div>
+
+
+<div class="formula">
+
+I<sub>o</sub> = P<sub>o</sub>/V<sub>o</sub>
+
+</div>
+
+
+<div class="formula">
+
+P<sub>in</sub> =
+P<sub>o</sub>/η
+
+</div>
+
+
+<div class="formula">
+
+I<sub>in</sub> =
+P<sub>in</sub>/V<sub>in</sub>
+
+</div>
+
+
+<div class="info">
+
+The calculator uses a 30% output-current ripple target and
+1% output-voltage ripple target for the approximate buck
+inductor and capacitor calculations.
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     QUIZ
+===================================================== -->
+
+<section
+id="quiz"
+class="content">
+
+<h2>
+7. Unit-II Interactive Assessment
+</h2>
+
+
+<div class="quiz">
+
+<h3>
+1. What is the ideal output voltage of a buck converter?
+</h3>
+
+<label>
+<input type="radio" name="q1" value="a">
+Vout = Vin/(1-D)
+</label>
+
+<label>
+<input type="radio" name="q1" value="b">
+Vout = D Vin
+</label>
+
+<label>
+<input type="radio" name="q1" value="c">
+Vout = Vin/D
+</label>
+
+<label>
+<input type="radio" name="q1" value="d">
+Vout = Vin + D
+</label>
+
+</div>
+
+
+<div class="quiz">
+
+<h3>
+2. Which converter is suitable when the input voltage can
+be both above and below the required output voltage?
+</h3>
+
+<label>
+<input type="radio" name="q2" value="a">
+Buck only
+</label>
+
+<label>
+<input type="radio" name="q2" value="b">
+Boost only
+</label>
+
+<label>
+<input type="radio" name="q2" value="c">
+Buck-Boost
+</label>
+
+<label>
+<input type="radio" name="q2" value="d">
+Rectifier
+</label>
+
+</div>
+
+
+<div class="quiz">
+
+<h3>
+3. What component provides galvanic isolation in an isolated
+DC-DC converter?
+</h3>
+
+<label>
+<input type="radio" name="q3" value="a">
+Resistor
+</label>
+
+<label>
+<input type="radio" name="q3" value="b">
+Inductor only
+</label>
+
+<label>
+<input type="radio" name="q3" value="c">
+High-frequency transformer
+</label>
+
+<label>
+<input type="radio" name="q3" value="d">
+Fuse
+</label>
+
+</div>
+
+
+<div class="quiz">
+
+<h3>
+4. During regenerative braking, power normally flows in which
+direction?
+</h3>
+
+<label>
+<input type="radio" name="q4" value="a">
+Battery → Motor
+</label>
+
+<label>
+<input type="radio" name="q4" value="b">
+Motor → Battery
+</label>
+
+<label>
+<input type="radio" name="q4" value="c">
+Controller → Battery
+</label>
+
+<label>
+<input type="radio" name="q4" value="d">
+Sensor → Motor
+</label>
+
+</div>
+
+
+<div class="quiz">
+
+<h3>
+5. A buck converter has Vin = 48 V and D = 0.25.
+Find the ideal output voltage.
+</h3>
+
+<label>
+<input type="radio" name="q5" value="a">
+6 V
+</label>
+
+<label>
+<input type="radio" name="q5" value="b">
+12 V
+</label>
+
+<label>
+<input type="radio" name="q5" value="c">
+24 V
+</label>
+
+<label>
+<input type="radio" name="q5" value="d">
+48 V
+</label>
+
+</div>
+
+
+<div class="quiz">
+
+<h3>
+6. What is the main advantage of a bidirectional converter?
+</h3>
+
+<label>
+<input type="radio" name="q6" value="a">
+Only voltage reduction
+</label>
+
+<label>
+<input type="radio" name="q6" value="b">
+Only voltage increase
+</label>
+
+<label>
+<input type="radio" name="q6" value="c">
+Power flow in both directions
+</label>
+
+<label>
+<input type="radio" name="q6" value="d">
+No switching
+</label>
+
+</div>
+
+
+<button
+class="action"
+onclick="evaluateQuiz()">
+
+Submit Assessment
+
+</button>
+
+
+<div id="quizResult"></div>
+
+</section>
+
+
+</div>
+
+</div>
+
+
+<footer>
+
+Unit II – Power Supply Design for Robotics Subsystems
+
+</footer>
+
+
+
+<script>
+
+/* =========================================================
+   TAB SYSTEM
+========================================================= */
+
+function openTab(id,button){
+
+    document
+        .querySelectorAll(".content")
+        .forEach(
+            x => x.classList.remove("active")
+        );
+
+    document
+        .querySelectorAll(".tab")
+        .forEach(
+            x => x.classList.remove("active")
+        );
+
+    document
+        .getElementById(id)
+        .classList.add("active");
+
+    button.classList.add("active");
+
+}
+
+
+/* =========================================================
+   BUCK CONVERTER
+========================================================= */
+
+let buckRunning=true;
+let buckTime=0;
+let buckAnim=null;
+
+function updateBuck(){
+
+    const Vin =
+        parseFloat(
+            document.getElementById("buckVin").value
+        );
+
+    const Vout =
+        parseFloat(
+            document.getElementById("buckVout").value
+        );
+
+    const fs =
+        parseFloat(
+            document.getElementById("buckFreq").value
+        )*1000;
+
+    const R =
+        parseFloat(
+            document.getElementById("buckR").value
+        );
+
+
+    if(
+        !Vin ||
+        !Vout ||
+        !fs ||
+        !R ||
+        Vout>=Vin
+    ){
+
+        alert(
+            "For a buck converter, enter valid values with Vout < Vin."
+        );
+
+        return;
+    }
+
+
+    const D=Vout/Vin;
+
+    const Io=Vout/R;
+
+    const ripple=0.30*Io;
+
+    const L=
+        ((Vin-Vout)*D)/
+        (fs*ripple);
+
+    const dVo=
+        0.01*Vout;
+
+    const C=
+        ripple/
+        (8*fs*dVo);
+
+
+    document.getElementById(
+        "buckDuty"
+    ).textContent=
+        (D*100).toFixed(1)+" %";
+
+
+    document.getElementById(
+        "buckPower"
+    ).textContent=
+        (Vout*Io).toFixed(1)+" W";
+
+
+    document.getElementById(
+        "buckCurrent"
+    ).textContent=
+        Io.toFixed(2)+" A";
+
+
+    document.getElementById(
+        "buckInductor"
+    ).textContent=
+        (L*1e6).toFixed(1)+" µH";
+
+
+    document.getElementById(
+        "buckCapacitor"
+    ).textContent=
+        (C*1e6).toFixed(1)+" µF";
+
+
+    document.getElementById(
+        "buckVinSVG"
+    ).textContent=
+        Vin.toFixed(1)+" V";
+
+
+    document.getElementById(
+        "buckDutySVG"
+    ).textContent=
+        "D = "+
+        (D*100).toFixed(1)+"%";
+
+
+    drawBuckWaveform(
+        Vin,
+        Vout,
+        D,
+        Io
+    );
+
+}
+
+
+function drawBuckWaveform(
+    Vin,
+    Vout,
+    D,
+    Io
+){
+
+    const canvas=
+        document.getElementById(
+            "buckCanvas"
+        );
+
+    const ctx=
+        canvas.getContext("2d");
+
+    const dpr=
+        window.devicePixelRatio || 1;
+
+    const rect=
+        canvas.getBoundingClientRect();
+
+    canvas.width=
+        rect.width*dpr;
+
+    canvas.height=
+        rect.height*dpr;
+
+    ctx.scale(dpr,dpr);
+
+    const w=canvas.clientWidth;
+
+    const h=canvas.clientHeight;
+
+
+    ctx.clearRect(0,0,w,h);
+
+
+    /* GRID */
+
+    ctx.strokeStyle="#1e293b";
+
+    for(
+        let x=0;
+        x<w;
+        x+=50
+    ){
+
+        ctx.beginPath();
+
+        ctx.moveTo(x,0);
+
+        ctx.lineTo(x,h);
+
+        ctx.stroke();
+
+    }
+
+
+    for(
+        let y=0;
+        y<h;
+        y+=40
+    ){
+
+        ctx.beginPath();
+
+        ctx.moveTo(0,y);
+
+        ctx.lineTo(w,y);
+
+        ctx.stroke();
+
+    }
+
+
+    /* SWITCHING VOLTAGE */
+
+    ctx.beginPath();
+
+    ctx.strokeStyle="#38bdf8";
+
+    ctx.lineWidth=3;
+
+
+    for(
+        let x=0;
+        x<w;
+        x++
+    ){
+
+        const phase=
+            (x/w*5)%1;
+
+        const value=
+            phase<D
+            ? Vin
+            : 0;
+
+        const y=
+            30+
+            (1-value/Vin)*80;
+
+
+        if(x===0)
+            ctx.moveTo(x,y);
+        else
+            ctx.lineTo(x,y);
+
+    }
+
+    ctx.stroke();
+
+
+    /* INDUCTOR CURRENT */
+
+    ctx.beginPath();
+
+    ctx.strokeStyle="#f59e0b";
+
+    ctx.lineWidth=3;
+
+
+    for(
+        let x=0;
+        x<w;
+        x++
+    ){
+
+        const phase=
+            (x/w*5)%1;
+
+        let value;
+
+
+        if(
+            phase<D
+        ){
+
+            value=
+                0.7+
+                phase/D*.25;
+
+        }
+        else{
+
+            value=
+                0.95-
+                (phase-D)/(1-D)*.25;
+
+        }
+
+
+        const y=
+            190-
+            value*80;
+
+
+        if(x===0)
+            ctx.moveTo(x,y);
+        else
+            ctx.lineTo(x,y);
+
+    }
+
+    ctx.stroke();
+
+
+    ctx.fillStyle="#e5e7eb";
+
+    ctx.font="14px Arial";
+
+    ctx.fillText(
+        "Switching Voltage",
+        15,
+        25
+    );
+
+    ctx.fillText(
+        "Inductor Current",
+        15,
+        165
+    );
+
+}
+
+
+/* =========================================================
+   BUCK ANIMATION
+========================================================= */
+
+function toggleBuck(){
+
+    buckRunning=!buckRunning;
+
+    if(buckRunning)
+        animateBuck();
+
+}
+
+
+function animateBuck(){
+
+    if(!buckRunning)
+        return;
+
+    buckTime++;
+
+    const Vin=
+        parseFloat(
+            document.getElementById(
+                "buckVin"
+            ).value
+        ) || 48;
+
+    const Vout=
+        parseFloat(
+            document.getElementById(
+                "buckVout"
+            ).value
+        ) || 12;
+
+    const D=
+        Vout/Vin;
+
+    const Io=
+        Vout/
+        (
+            parseFloat(
+                document.getElementById(
+                    "buckR"
+                ).value
+            ) || 6
+        );
+
+
+    drawAnimatedBuck(
+        Vin,
+        D,
+        Io
+    );
+
+
+    buckAnim=
+        requestAnimationFrame(
+            animateBuck
+        );
+
+}
+
+
+function drawAnimatedBuck(
+    Vin,
+    D,
+    Io
+){
+
+    const canvas=
+        document.getElementById(
+            "buckCanvas"
+        );
+
+    const ctx=
+        canvas.getContext("2d");
+
+    const w=canvas.clientWidth;
+
+    const h=canvas.clientHeight;
+
+
+    ctx.clearRect(
+        0,
+        0,
+        w,
+        h
+    );
+
+
+    ctx.strokeStyle="#1e293b";
+
+    for(
+        let x=0;
+        x<w;
+        x+=50
+    ){
+
+        ctx.beginPath();
+
+        ctx.moveTo(x,0);
+
+        ctx.lineTo(x,h);
+
+        ctx.stroke();
+
+    }
+
+
+    const shift=
+        (buckTime%100)/100;
+
+
+    ctx.beginPath();
+
+    ctx.strokeStyle="#38bdf8";
+
+    ctx.lineWidth=3;
+
+
+    for(
+        let x=0;
+        x<w;
+        x++
+    ){
+
+        const phase=
+            ((x/w*4)+shift)%1;
+
+        const value=
+            phase<D
+            ? Vin
+            : 0;
+
+        const y=
+            80-
+            value/Vin*60;
+
+
+        if(x===0)
+            ctx.moveTo(x,y);
+        else
+            ctx.lineTo(x,y);
+
+    }
+
+    ctx.stroke();
+
+
+    ctx.beginPath();
+
+    ctx.strokeStyle="#f59e0b";
+
+    ctx.lineWidth=3;
+
+
+    for(
+        let x=0;
+        x<w;
+        x++
+    ){
+
+        const phase=
+            ((x/w*4)+shift)%1;
+
+        let current;
+
+
+        if(
+            phase<D
+        ){
+
+            current=
+                Io*
+                (
+                    1.0+
+                    .2*phase/D
+                );
+
+        }
+        else{
+
+            current=
+                Io*
+                (
+                    1.2-
+                    .2*(phase-D)/(1-D)
+                );
+
+        }
+
+
+        const y=
+            220-
+            current*20;
+
+
+        if(x===0)
+            ctx.moveTo(x,y);
+        else
+            ctx.lineTo(x,y);
+
+    }
+
+    ctx.stroke();
+
+}
+
+
+updateBuck();
+
+animateBuck();
+
+
+/* =========================================================
+   BUCK BOOST
+========================================================= */
+
+const bbDuty=
+    document.getElementById(
+        "bbDuty"
+    );
+
+bbDuty.addEventListener(
+    "input",
+    updateBB
+);
+
+document.getElementById(
+    "bbVin"
+).addEventListener(
+    "input",
+    updateBB
+);
+
+document.getElementById(
+    "bbR"
+).addEventListener(
+    "input",
+    updateBB
+);
+
+
+function updateBB(){
+
+    const Vin=
+        parseFloat(
+            document.getElementById(
+                "bbVin"
+            ).value
+        );
+
+    const D=
+        parseFloat(
+            bbDuty.value
+        );
+
+    const R=
+        parseFloat(
+            document.getElementById(
+                "bbR"
+            ).value
+        );
+
+
+    const Vout=
+        Vin*
+        D/
+        (1-D);
+
+    const Iout=
+        Vout/R;
+
+
+    document.getElementById(
+        "bbDutyValue"
+    ).textContent=
+        (D*100).toFixed(1)+" %";
+
+
+    document.getElementById(
+        "bbVout"
+    ).textContent=
+        Vout.toFixed(2)+" V";
+
+
+    document.getElementById(
+        "bbIout"
+    ).textContent=
+        Iout.toFixed(2)+" A";
+
+
+    drawBBWaveform(
+        D
+    );
+
+}
+
+
+function drawBBWaveform(D){
+
+    const canvas=
+        document.getElementById(
+            "bbCanvas"
+        );
+
+    const ctx=
+        canvas.getContext("2d");
+
+    const rect=
+        canvas.getBoundingClientRect();
+
+    const dpr=
+        window.devicePixelRatio || 1;
+
+    canvas.width=
+        rect.width*dpr;
+
+    canvas.height=
+        rect.height*dpr;
+
+    ctx.scale(dpr,dpr);
+
+
+    const w=canvas.clientWidth;
+
+    const h=canvas.clientHeight;
+
+
+    ctx.clearRect(
+        0,
+        0,
+        w,
+        h
+    );
+
+
+    ctx.strokeStyle="#1e293b";
+
+
+    for(
+        let x=0;
+        x<w;
+        x+=50
+    ){
+
+        ctx.beginPath();
+
+        ctx.moveTo(x,0);
+
+        ctx.lineTo(x,h);
+
+        ctx.stroke();
+
+    }
+
+
+    ctx.beginPath();
+
+    ctx.strokeStyle="#38bdf8";
+
+    ctx.lineWidth=3;
+
+
+    for(
+        let x=0;
+        x<w;
+        x++
+    ){
+
+        const phase=
+            (x/w*4)%1;
+
+        const y=
+            phase<D
+            ? 50
+            : 130;
+
+        if(x===0)
+            ctx.moveTo(x,y);
+        else
+            ctx.lineTo(x,y);
+
+    }
+
+    ctx.stroke();
+
+
+    ctx.beginPath();
+
+    ctx.strokeStyle="#f59e0b";
+
+    ctx.lineWidth=3;
+
+
+    for(
+        let x=0;
+        x<w;
+        x++
+    ){
+
+        const phase=
+            (x/w*4)%1;
+
+        let y;
+
+
+        if(phase<D){
+
+            y=
+                210-
+                phase/D*60;
+
+        }
+        else{
+
+            y=
+                150+
+                (phase-D)/(1-D)*60;
+
+        }
+
+
+        if(x===0)
+            ctx.moveTo(x,y);
+        else
+            ctx.lineTo(x,y);
+
+    }
+
+    ctx.stroke();
+
+
+    ctx.fillStyle="#e5e7eb";
+
+    ctx.font="14px Arial";
+
+    ctx.fillText(
+        "Switching Voltage",
+        15,
+        30
+    );
+
+    ctx.fillText(
+        "Inductor Current",
+        15,
+        145
+    );
+
+}
+
+
+updateBB();
+
+
+/* =========================================================
+   ISOLATED TRANSFORMER
+========================================================= */
+
+let isoRunning=false;
+let isoTime=0;
+let isoAnim=null;
+
+
+function toggleIso(){
+
+    isoRunning=!isoRunning;
+
+    if(isoRunning)
+        animateIso();
+
+}
+
+
+function animateIso(){
+
+    if(!isoRunning)
+        return;
+
+
+    const canvas=
+        document.getElementById(
+            "isoCanvas"
+        );
+
+    const ctx=
+        canvas.getContext("2d");
+
+    const rect=
+        canvas.getBoundingClientRect();
+
+    const dpr=
+        window.devicePixelRatio || 1;
+
+    canvas.width=
+        rect.width*dpr;
+
+    canvas.height=
+        rect.height*dpr;
+
+    ctx.scale(dpr,dpr);
+
+
+    const w=canvas.clientWidth;
+
+    const h=canvas.clientHeight;
+
+
+    ctx.clearRect(
+        0,
+        0,
+        w,
+        h
+    );
+
+
+    ctx.strokeStyle="#1e293b";
+
+    for(
+        let x=0;
+        x<w;
+        x+=50
+    ){
+
+        ctx.beginPath();
+
+        ctx.moveTo(x,0);
+
+        ctx.lineTo(x,h);
+
+        ctx.stroke();
+
+    }
+
+
+    const shift=
+        (isoTime%100)/100;
+
+
+    /* PRIMARY */
+
+    ctx.beginPath();
+
+    ctx.strokeStyle="#38bdf8";
+
+    ctx.lineWidth=3;
+
+
+    for(
+        let x=0;
+        x<w*.45;
+        x++
+    ){
+
+        const phase=
+            ((x/w*5)+shift)%1;
+
+        const y=
+            phase<.5
+            ? 60
+            : 150;
+
+
+        if(x===0)
+            ctx.moveTo(x,y);
+        else
+            ctx.lineTo(x,y);
+
+    }
+
+    ctx.stroke();
+
+
+    /* SECONDARY */
+
+    ctx.beginPath();
+
+    ctx.strokeStyle="#f59e0b";
+
+    ctx.lineWidth=3;
+
+
+    for(
+        let x=w*.55;
+        x<w;
+        x++
+    ){
+
+        const phase=
+            ((x/w*5)+shift)%1;
+
+        const y=
+            phase<.5
+            ? 60
+            : 150;
+
+
+        if(x===w*.55)
+            ctx.moveTo(x,y);
+        else
+            ctx.lineTo(x,y);
+
+    }
+
+    ctx.stroke();
+
+
+    /* ISOLATION */
+
+    ctx.strokeStyle="#22c55e";
+
+    ctx.setLineDash([
+        8,
+        8
+    ]);
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        w*.5,
+        20
+    );
+
+    ctx.lineTo(
+        w*.5,
+        h-20
+    );
+
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+
+
+    ctx.fillStyle="#e5e7eb";
+
+    ctx.font="14px Arial";
+
+    ctx.fillText(
+        "Primary PWM",
+        15,
+        35
+    );
+
+    ctx.fillText(
+        "Secondary",
+        w*.56,
+        35
+    );
+
+    ctx.fillText(
+        "GALVANIC ISOLATION",
+        w*.5-70,
+        h-20
+    );
+
+
+    isoTime++;
+
+    isoAnim=
+        requestAnimationFrame(
+            animateIso
+        );
+
+}
+
+
+/* =========================================================
+   BIDIRECTIONAL
+========================================================= */
+
+let biRunning=false;
+let biTime=0;
+let biAnim=null;
+
+
+function updateBidirectional(){
+
+    const battery=
+        parseFloat(
+            document.getElementById(
+                "biBattery"
+            ).value
+        );
+
+    const bus=
+        parseFloat(
+            document.getElementById(
+                "biBus"
+            ).value
+        );
+
+    const mode=
+        document.getElementById(
+            "biMode"
+        ).value;
+
+
+    document.getElementById(
+        "biBatterySVG"
+    ).textContent=
+        battery+" V";
+
+
+    document.getElementById(
+        "biBusSVG"
+    ).textContent=
+        bus+" V";
+
+
+    const line=
+        document.getElementById(
+            "biFlowLine"
+        );
+
+
+    const explanation=
+        document.getElementById(
+            "biExplanation"
+        );
+
+
+    if(
+        mode==="motoring"
+    ){
+
+        line.setAttribute(
+            "x1",
+            "230"
+        );
+
+        line.setAttribute(
+            "x2",
+            "430"
+        );
+
+        line.setAttribute(
+            "marker-end",
+            "url(#biArrow)"
+        );
+
+
+        explanation.innerHTML=
+            "<b>Motoring:</b> Battery → Bidirectional Converter → DC Bus → Motor Drive";
+
+    }
+
+    else{
+
+        line.setAttribute(
+            "x1",
+            "430"
+        );
+
+        line.setAttribute(
+            "x2",
+            "230"
+        );
+
+        line.setAttribute(
+            "marker-end",
+            "url(#biArrow)"
+        );
+
+
+        explanation.innerHTML=
+            "<b>Regenerative Braking:</b> Motor → DC Bus → Bidirectional Converter → Battery";
+
+    }
+
+}
+
+
+function toggleBiAnimation(){
+
+    biRunning=!biRunning;
+
+    if(biRunning)
+        animateBi();
+
+}
+
+
+function animateBi(){
+
+    if(!biRunning)
+        return;
+
+
+    const canvas=
+        document.getElementById(
+            "biCanvas"
+        );
+
+    const ctx=
+        canvas.getContext("2d");
+
+    const rect=
+        canvas.getBoundingClientRect();
+
+    const dpr=
+        window.devicePixelRatio || 1;
+
+    canvas.width=
+        rect.width*dpr;
+
+    canvas.height=
+        rect.height*dpr;
+
+    ctx.scale(dpr,dpr);
+
+
+    const w=canvas.clientWidth;
+
+    const h=canvas.clientHeight;
+
+
+    ctx.clearRect(
+        0,
+        0,
+        w,
+        h
+    );
+
+
+    const mode=
+        document.getElementById(
+            "biMode"
+        ).value;
+
+
+    const forward=
+        mode==="motoring";
+
+
+    ctx.strokeStyle="#334155";
+
+    ctx.lineWidth=5;
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        70,
+        h/2
+    );
+
+    ctx.lineTo(
+        w-70,
+        h/2
+    );
+
+    ctx.stroke();
+
+
+    const nodes=[
+        [80,"Battery"],
+        [w*.5,"Bidirectional DC-DC"],
+        [w-80,"DC Bus"]
+    ];
+
+
+    nodes.forEach(
+        n=>{
+
+            ctx.beginPath();
+
+            ctx.arc(
+                n[0],
+                h/2,
+                18,
+                0,
+                Math.PI*2
+            );
+
+            ctx.fillStyle="#2563eb";
+
+            ctx.fill();
+
+
+            ctx.fillStyle="#e5e7eb";
+
+            ctx.font="14px Arial";
+
+            ctx.textAlign="center";
+
+            ctx.fillText(
+                n[1],
+                n[0],
+                h/2+50
+            );
+
+        }
+    );
+
+
+    for(
+        let i=0;
+        i<8;
+        i++
+    ){
+
+        let p=
+            (
+                biTime*.01+
+                i/8
+            )%1;
+
+
+        if(!forward)
+            p=1-p;
+
+
+        const x=
+            80+
+            p*(w-160);
+
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x,
+            h/2,
+            7,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fillStyle="#facc15";
+
+        ctx.fill();
+
+    }
+
+
+    ctx.fillStyle="#e5e7eb";
+
+    ctx.font="16px Arial";
+
+    ctx.textAlign="center";
+
+
+    ctx.fillText(
+        forward
+        ?
+        "Battery → DC Bus"
+        :
+        "DC Bus → Battery",
+        w/2,
+        40
+    );
+
+
+    biTime++;
+
+    biAnim=
+        requestAnimationFrame(
+            animateBi
+        );
+
+}
+
+
+updateBidirectional();
+
+
+/* =========================================================
+   DESIGN CALCULATOR
+========================================================= */
+
+function calculateDesign(){
+
+    const Vin=
+        parseFloat(
+            document.getElementById(
+                "calcVin"
+            ).value
+        );
+
+    const Vout=
+        parseFloat(
+            document.getElementById(
+                "calcVout"
+            ).value
+        );
+
+    const Po=
+        parseFloat(
+            document.getElementById(
+                "calcPower"
+            ).value
+        );
+
+    const eta=
+        parseFloat(
+            document.getElementById(
+                "calcEff"
+            ).value
+        )/100;
+
+    const fs=
+        parseFloat(
+            document.getElementById(
+                "calcFreq"
+            ).value
+        )*1000;
+
+
+    const D=
+        Vout/Vin;
+
+    const Io=
+        Po/Vout;
+
+    const Pin=
+        Po/eta;
+
+    const Iin=
+        Pin/Vin;
+
+    const ripple=
+        .30*Io;
+
+    const L=
+        ((Vin-Vout)*D)/
+        (fs*ripple);
+
+    const dVo=
+        .01*Vout;
+
+    const C=
+        ripple/
+        (8*fs*dVo);
+
+
+    document.getElementById(
+        "calcDuty"
+    ).textContent=
+        (D*100).toFixed(2)+" %";
+
+
+    document.getElementById(
+        "calcIo"
+    ).textContent=
+        Io.toFixed(2)+" A";
+
+
+    document.getElementById(
+        "calcPin"
+    ).textContent=
+        Pin.toFixed(2)+" W";
+
+
+    document.getElementById(
+        "calcIin"
+    ).textContent=
+        Iin.toFixed(2)+" A";
+
+
+    document.getElementById(
+        "calcL"
+    ).textContent=
+        (L*1e6).toFixed(2)+" µH";
+
+
+    document.getElementById(
+        "calcC"
+    ).textContent=
+        (C*1e6).toFixed(2)+" µF";
+
+}
+
+
+/* =========================================================
+   QUIZ
+========================================================= */
+
+function evaluateQuiz(){
+
+    const answers={
+        q1:"b",
+        q2:"c",
+        q3:"c",
+        q4:"b",
+        q5:"b",
+        q6:"c"
+    };
+
+
+    let score=0;
+
+
+    Object.keys(answers)
+    .forEach(
+        q=>{
+
+            const selected=
+                document.querySelector(
+                    'input[name="'+
+                    q+
+                    '"]:checked'
+                );
+
+
+            if(
+                selected &&
+                selected.value===
+                answers[q]
+            ){
+
+                score++;
+
+            }
+
+        }
+    );
+
+
+    const percentage=
+        score/
+        Object.keys(answers).length*
+        100;
+
+
+    document.getElementById(
+        "quizResult"
+    ).innerHTML=
+
+    `
+    Score:
+    <span style="color:#38bdf8">
+    ${score}/6
+    </span>
+
+    <br>
+
+    Percentage:
+    <span style="color:#22c55e">
+    ${percentage.toFixed(1)}%
+    </span>
+    `;
+
+}
+
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+calculateDesign();
+
+</script>
+
+</body>
+
+</html>
+

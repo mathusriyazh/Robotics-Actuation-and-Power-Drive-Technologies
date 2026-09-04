@@ -1,0 +1,307 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Robotics Actuation & Power Drive Technologies</title>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial, Helvetica, sans-serif;
+    background:#0f172a;
+    color:#e5e7eb;
+}
+
+header{
+    background:linear-gradient(135deg,#1e3a8a,#312e81);
+    padding:35px 20px;
+    text-align:center;
+}
+
+header h1{
+    margin:0;
+    font-size:32px;
+}
+
+header p{
+    margin-top:10px;
+    font-size:17px;
+    color:#cbd5e1;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+    padding:30px 20px;
+}
+
+.student{
+    background:#1e293b;
+    padding:20px;
+    border-radius:15px;
+    margin-bottom:30px;
+}
+
+.student input{
+    width:100%;
+    padding:12px;
+    margin:7px 0;
+    border:none;
+    border-radius:8px;
+    background:#334155;
+    color:white;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:20px;
+}
+
+.card{
+    background:#1e293b;
+    border-radius:18px;
+    padding:25px;
+    text-align:center;
+    box-shadow:0 10px 25px rgba(0,0,0,0.25);
+    transition:0.3s;
+}
+
+.card:hover{
+    transform:translateY(-5px);
+}
+
+.card h2{
+    margin-top:0;
+}
+
+.card p{
+    color:#94a3b8;
+    min-height:45px;
+}
+
+.card a{
+    display:inline-block;
+    padding:12px 22px;
+    border-radius:8px;
+    background:#2563eb;
+    color:white;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+.card a:hover{
+    background:#1d4ed8;
+}
+
+.qp{
+    background:#7c3aed !important;
+}
+
+footer{
+    text-align:center;
+    padding:25px;
+    color:#94a3b8;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+<h1>EIE232</h1>
+
+<h1>Robotics Actuation & Power Drive Technologies</h1>
+
+<p>Interactive Virtual Laboratory</p>
+
+</header>
+
+<div class="container">
+
+<div class="student">
+
+<h2>Student Details</h2>
+
+<input type="text"
+       id="studentName"
+       placeholder="Enter Student Name">
+
+<input type="text"
+       id="registerNo"
+       placeholder="Enter Register Number">
+
+<input type="text"
+       id="department"
+       placeholder="Enter Department">
+
+<button onclick="saveStudent()"
+        style="padding:12px 25px;
+               border:none;
+               border-radius:8px;
+               background:#16a34a;
+               color:white;
+               font-weight:bold;">
+Save Details
+</button>
+
+<p id="savedMessage"></p>
+
+</div>
+
+
+<div class="grid">
+
+<!-- UNIT I -->
+
+<div class="card">
+
+<h2>UNIT I</h2>
+
+<p>
+Robotic Actuation Systems
+and Drive Fundamentals
+</p>
+
+<a href="Unit I.html">
+Open Unit I
+</a>
+
+</div>
+
+
+<!-- UNIT II -->
+
+<div class="card">
+
+<h2>UNIT II</h2>
+
+<p>
+Power Supply Design for
+Robotics Subsystems
+</p>
+
+<a href="Unit II.html">
+Open Unit II
+</a>
+
+</div>
+
+
+<!-- UNIT III -->
+
+<div class="card">
+
+<h2>UNIT III</h2>
+
+<p>
+Motor Drives and
+Robotic Motion Control
+</p>
+
+<a href="Unit III.html">
+Open Unit III
+</a>
+
+</div>
+
+
+<!-- UNIT IV -->
+
+<div class="card">
+
+<h2>UNIT IV</h2>
+
+<p>
+Advanced Drives,
+AI and Intelligent Robotics
+</p>
+
+<a href="Unit IV.html">
+Open Unit IV
+</a>
+
+</div>
+
+
+<!-- QUESTION PAPERS -->
+
+<div class="card">
+
+<h2>QUESTION PAPERS</h2>
+
+<p>
+Set 1 to Set 9 with
+Answer Keys
+</p>
+
+<a class="qp"
+   href="QP.html">
+
+Open Question Papers
+
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+
+<footer>
+
+EIE232 | Robotics Actuation & Power Drive Technologies
+
+</footer>
+
+
+<script>
+
+function saveStudent(){
+
+    const name =
+        document.getElementById("studentName").value;
+
+    const reg =
+        document.getElementById("registerNo").value;
+
+    const dept =
+        document.getElementById("department").value;
+
+    localStorage.setItem("studentName",name);
+    localStorage.setItem("registerNo",reg);
+    localStorage.setItem("department",dept);
+
+    document.getElementById("savedMessage").innerHTML =
+        "Student details saved successfully.";
+
+}
+
+
+window.onload=function(){
+
+    document.getElementById("studentName").value =
+        localStorage.getItem("studentName") || "";
+
+    document.getElementById("registerNo").value =
+        localStorage.getItem("registerNo") || "";
+
+    document.getElementById("department").value =
+        localStorage.getItem("department") || "";
+
+};
+
+</script>
+
+</body>
+</html>
+

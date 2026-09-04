@@ -1,0 +1,4422 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>
+Unit I - Introduction to Power Electronics for Robotics
+</title>
+
+<style>
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+*{
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    margin:0;
+    font-family:
+        "Segoe UI",
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background:#f4f7fb;
+    color:#1f2937;
+    line-height:1.65;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.header{
+
+    background:
+        linear-gradient(
+            135deg,
+            #172554,
+            #1e3a8a,
+            #2563eb
+        );
+
+    color:white;
+
+    padding:35px 20px;
+
+    text-align:center;
+
+}
+
+.header h1{
+
+    margin:0;
+
+    font-size:34px;
+
+    font-weight:700;
+
+}
+
+.header p{
+
+    margin:8px auto 0;
+
+    max-width:850px;
+
+    font-size:17px;
+
+    opacity:.92;
+
+}
+
+
+/* =========================================================
+   MAIN CONTAINER
+========================================================= */
+
+.container{
+
+    max-width:1400px;
+
+    margin:auto;
+
+    padding:20px;
+
+}
+
+
+/* =========================================================
+   TAB NAVIGATION
+========================================================= */
+
+.tab-container{
+
+    background:white;
+
+    border-radius:14px;
+
+    box-shadow:
+        0 5px 20px rgba(0,0,0,.08);
+
+    overflow:hidden;
+
+}
+
+.tabs{
+
+    display:flex;
+
+    overflow-x:auto;
+
+    background:#111827;
+
+    scrollbar-width:thin;
+
+}
+
+.tab{
+
+    flex:0 0 auto;
+
+    padding:16px 22px;
+
+    border:none;
+
+    background:#111827;
+
+    color:#d1d5db;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+.tab:hover{
+
+    background:#374151;
+
+    color:white;
+
+}
+
+.tab.active{
+
+    background:#2563eb;
+
+    color:white;
+
+}
+
+
+/* =========================================================
+   TAB CONTENT
+========================================================= */
+
+.tab-content{
+
+    display:none;
+
+    padding:30px;
+
+    animation:
+        fadeIn .35s ease;
+
+}
+
+.tab-content.active{
+
+    display:block;
+
+}
+
+@keyframes fadeIn{
+
+    from{
+        opacity:0;
+        transform:translateY(8px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+
+}
+
+
+/* =========================================================
+   HEADINGS
+========================================================= */
+
+h2{
+
+    color:#1e3a8a;
+
+    border-left:5px solid #2563eb;
+
+    padding-left:12px;
+
+}
+
+h3{
+
+    color:#1f2937;
+
+}
+
+h4{
+
+    color:#2563eb;
+
+}
+
+
+/* =========================================================
+   CARDS
+========================================================= */
+
+.card-grid{
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(auto-fit,minmax(250px,1fr));
+
+    gap:18px;
+
+    margin:20px 0;
+
+}
+
+.card{
+
+    background:#ffffff;
+
+    border:1px solid #e5e7eb;
+
+    border-radius:12px;
+
+    padding:20px;
+
+    box-shadow:
+        0 3px 10px rgba(0,0,0,.05);
+
+}
+
+.card h3{
+
+    margin-top:0;
+
+}
+
+
+/* =========================================================
+   INFO BOXES
+========================================================= */
+
+.info{
+
+    background:#eff6ff;
+
+    border-left:5px solid #2563eb;
+
+    padding:15px 18px;
+
+    border-radius:7px;
+
+    margin:15px 0;
+
+}
+
+.warning{
+
+    background:#fff7ed;
+
+    border-left:5px solid #f97316;
+
+    padding:15px 18px;
+
+    border-radius:7px;
+
+    margin:15px 0;
+
+}
+
+.success{
+
+    background:#f0fdf4;
+
+    border-left:5px solid #16a34a;
+
+    padding:15px 18px;
+
+    border-radius:7px;
+
+    margin:15px 0;
+
+}
+
+
+/* =========================================================
+   FORMULA
+========================================================= */
+
+.formula{
+
+    background:#111827;
+
+    color:#f9fafb;
+
+    padding:16px;
+
+    border-radius:8px;
+
+    text-align:center;
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    font-size:17px;
+
+    margin:15px 0;
+
+}
+
+
+/* =========================================================
+   SVG AREA
+========================================================= */
+
+.diagram{
+
+    width:100%;
+
+    min-height:300px;
+
+    background:white;
+
+    border:1px solid #d1d5db;
+
+    border-radius:12px;
+
+    margin:20px 0;
+
+    overflow:hidden;
+
+}
+
+.diagram svg{
+
+    width:100%;
+
+    height:100%;
+
+    min-height:300px;
+
+}
+
+
+/* =========================================================
+   CANVAS
+========================================================= */
+
+.canvas-container{
+
+    width:100%;
+
+    background:#0f172a;
+
+    border-radius:12px;
+
+    padding:10px;
+
+    margin:20px 0;
+
+}
+
+canvas{
+
+    width:100%;
+
+    height:320px;
+
+    display:block;
+
+    background:#020617;
+
+    border-radius:8px;
+
+}
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+button.control{
+
+    padding:10px 18px;
+
+    border:none;
+
+    border-radius:7px;
+
+    background:#2563eb;
+
+    color:white;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    margin:5px;
+
+}
+
+button.control:hover{
+
+    opacity:.85;
+
+}
+
+
+/* =========================================================
+   BATTERY CARDS
+========================================================= */
+
+.battery{
+
+    text-align:center;
+
+}
+
+.battery-icon{
+
+    width:100px;
+
+    height:55px;
+
+    border:4px solid #374151;
+
+    border-radius:8px;
+
+    margin:10px auto;
+
+    position:relative;
+
+}
+
+.battery-icon::after{
+
+    content:"";
+
+    position:absolute;
+
+    right:-12px;
+
+    top:15px;
+
+    width:8px;
+
+    height:20px;
+
+    background:#374151;
+
+}
+
+.battery-level{
+
+    height:100%;
+
+    width:75%;
+
+    background:#22c55e;
+
+    border-radius:3px;
+
+}
+
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+    margin:20px 0;
+
+}
+
+th,
+td{
+
+    border:1px solid #d1d5db;
+
+    padding:11px;
+
+    text-align:left;
+
+}
+
+th{
+
+    background:#e5e7eb;
+
+}
+
+
+/* =========================================================
+   PROCESS FLOW
+========================================================= */
+
+.flow{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    flex-wrap:wrap;
+
+    gap:10px;
+
+    margin:25px 0;
+
+}
+
+.flow-box{
+
+    background:#dbeafe;
+
+    border:2px solid #2563eb;
+
+    border-radius:10px;
+
+    padding:15px 20px;
+
+    text-align:center;
+
+    font-weight:bold;
+
+}
+
+.arrow{
+
+    font-size:25px;
+
+    color:#2563eb;
+
+}
+
+
+/* =========================================================
+   DEVICE COMPARISON
+========================================================= */
+
+.device{
+
+    text-align:center;
+
+}
+
+.device-symbol{
+
+    height:160px;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-size:80px;
+
+}
+
+
+/* =========================================================
+   QUIZ
+========================================================= */
+
+.quiz{
+
+    background:#f8fafc;
+
+    border:1px solid #d1d5db;
+
+    padding:20px;
+
+    border-radius:10px;
+
+    margin-top:25px;
+
+}
+
+.quiz button{
+
+    padding:10px 15px;
+
+    border:none;
+
+    border-radius:6px;
+
+    background:#16a34a;
+
+    color:white;
+
+    cursor:pointer;
+
+}
+
+.quiz-result{
+
+    font-weight:bold;
+
+    margin-top:10px;
+
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+footer{
+
+    background:#111827;
+
+    color:#d1d5db;
+
+    text-align:center;
+
+    padding:25px;
+
+    margin-top:30px;
+
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media(max-width:700px){
+
+    .header h1{
+
+        font-size:25px;
+
+    }
+
+    .tab-content{
+
+        padding:18px;
+
+    }
+
+    .tab{
+
+        padding:13px 16px;
+
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header class="header">
+
+<h1>
+Introduction to Power Electronics for Robotics
+</h1>
+
+<p>
+Unit I – Interactive Concept Learning Module
+</p>
+
+<p>
+Robotic Electrical Power Systems • Batteries • Power Devices •
+DC Bus • Converters • Selection • Isolation • EMI/EMC
+</p>
+
+</header>
+
+
+<div class="container">
+
+
+<!-- =====================================================
+     TAB SYSTEM
+===================================================== -->
+
+<div class="tab-container">
+
+
+<div class="tabs">
+
+<button class="tab active"
+        onclick="openTab('overview',this)">
+01. Overview
+</button>
+
+<button class="tab"
+        onclick="openTab('battery',this)">
+02. Batteries
+</button>
+
+<button class="tab"
+        onclick="openTab('devices',this)">
+03. MOSFET & IGBT
+</button>
+
+<button class="tab"
+        onclick="openTab('losses',this)">
+04. Switching & Thermal
+</button>
+
+<button class="tab"
+        onclick="openTab('dcBus',this)">
+05. DC Bus
+</button>
+
+<button class="tab"
+        onclick="openTab('classification',this)">
+06. Converters
+</button>
+
+<button class="tab"
+        onclick="openTab('selection',this)">
+07. Selection
+</button>
+
+<button class="tab"
+        onclick="openTab('isolation',this)">
+08. Isolation
+</button>
+
+<button class="tab"
+        onclick="openTab('emi',this)">
+09. EMI / EMC
+</button>
+
+<button class="tab"
+        onclick="openTab('quiz',this)">
+10. Quiz
+</button>
+
+</div>
+
+
+<!-- =====================================================
+     TAB 1 – OVERVIEW
+===================================================== -->
+
+<section
+    id="overview"
+    class="tab-content active">
+
+<h2>
+Overview of Robotic Electrical Power Systems
+</h2>
+
+<p>
+
+A robotic electrical power system converts stored electrical
+energy into the voltage, current and waveform required by
+motors, actuators, sensors, controllers, communication systems
+and AI processors.
+
+</p>
+
+
+<div class="flow">
+
+<div class="flow-box">
+Battery
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-box">
+DC Bus
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-box">
+Power Converters
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-box">
+Loads
+</div>
+
+</div>
+
+
+<h3>
+Typical Robotic Power Architecture
+</h3>
+
+
+<div class="diagram">
+
+<svg viewBox="0 0 1100 450">
+
+<defs>
+
+<marker
+id="arrow"
+markerWidth="10"
+markerHeight="10"
+refX="8"
+refY="3"
+orient="auto">
+
+<path d="M0,0 L0,6 L9,3 z"
+      fill="#2563eb"/>
+
+</marker>
+
+</defs>
+
+
+<!-- Battery -->
+
+<rect
+x="40"
+y="170"
+width="150"
+height="100"
+rx="12"
+fill="#dbeafe"
+stroke="#2563eb"
+stroke-width="3"/>
+
+<text
+x="115"
+y="215"
+text-anchor="middle"
+font-size="20"
+font-weight="bold">
+
+Battery
+
+</text>
+
+<text
+x="115"
+y="245"
+text-anchor="middle"
+font-size="16">
+
+24–72 V DC
+
+</text>
+
+
+<!-- DC BUS -->
+
+<rect
+x="270"
+y="145"
+width="200"
+height="150"
+rx="12"
+fill="#dcfce7"
+stroke="#16a34a"
+stroke-width="3"/>
+
+<text
+x="370"
+y="205"
+text-anchor="middle"
+font-size="21"
+font-weight="bold">
+
+DC BUS
+
+</text>
+
+<text
+x="370"
+y="235"
+text-anchor="middle"
+font-size="15">
+
+Energy distribution
+
+</text>
+
+<text
+x="370"
+y="260"
+text-anchor="middle"
+font-size="15">
+
+&amp; energy storage
+
+</text>
+
+
+<!-- Converter -->
+
+<rect
+x="550"
+y="130"
+width="210"
+height="180"
+rx="12"
+fill="#fef3c7"
+stroke="#d97706"
+stroke-width="3"/>
+
+<text
+x="655"
+y="180"
+text-anchor="middle"
+font-size="20"
+font-weight="bold">
+
+Converters
+
+</text>
+
+<text
+x="655"
+y="215"
+text-anchor="middle"
+font-size="15">
+
+Buck
+
+</text>
+
+<text
+x="655"
+y="240"
+text-anchor="middle"
+font-size="15">
+
+Boost
+
+</text>
+
+<text
+x="655"
+y="265"
+text-anchor="middle"
+font-size="15">
+
+Inverter
+
+</text>
+
+
+<!-- Loads -->
+
+<rect
+x="850"
+y="90"
+width="190"
+height="250"
+rx="12"
+fill="#f3e8ff"
+stroke="#9333ea"
+stroke-width="3"/>
+
+<text
+x="945"
+y="130"
+text-anchor="middle"
+font-size="20"
+font-weight="bold">
+
+Robot Loads
+
+</text>
+
+<text
+x="945"
+y="170"
+text-anchor="middle"
+font-size="15">
+
+Motor
+
+</text>
+
+<text
+x="945"
+y="200"
+text-anchor="middle"
+font-size="15">
+
+Sensors
+
+</text>
+
+<text
+x="945"
+y="230"
+text-anchor="middle"
+font-size="15">
+
+Controller
+
+</text>
+
+<text
+x="945"
+y="260"
+text-anchor="middle"
+font-size="15">
+
+AI Processor
+
+</text>
+
+<text
+x="945"
+y="290"
+text-anchor="middle"
+font-size="15">
+
+Actuators
+
+</text>
+
+
+<!-- arrows -->
+
+<line
+x1="190"
+y1="220"
+x2="270"
+y2="220"
+stroke="#2563eb"
+stroke-width="4"
+marker-end="url(#arrow)"/>
+
+<line
+x1="470"
+y1="220"
+x2="550"
+y2="220"
+stroke="#2563eb"
+stroke-width="4"
+marker-end="url(#arrow)"/>
+
+<line
+x1="760"
+y1="220"
+x2="850"
+y2="220"
+stroke="#2563eb"
+stroke-width="4"
+marker-end="url(#arrow)"/>
+
+</svg>
+
+</div>
+
+
+<div class="card-grid">
+
+<div class="card">
+
+<h3>
+Energy Source
+</h3>
+
+<p>
+The battery stores energy and supplies the electrical
+power required by the robot.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Power Conversion
+</h3>
+
+<p>
+DC-DC converters and inverters convert voltage, current
+and frequency into suitable forms.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Control
+</h3>
+
+<p>
+Digital controllers regulate voltage, current, speed,
+torque and position.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Protection
+</h3>
+
+<p>
+Protection includes over-current, over-voltage,
+under-voltage, short-circuit and thermal protection.
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     TAB 2 – BATTERIES
+===================================================== -->
+
+<section
+id="battery"
+class="tab-content">
+
+<h2>
+Battery Types and Power Requirements
+</h2>
+
+<p>
+
+The battery is one of the most important components in a mobile
+robot because it determines operating time, weight, peak power
+capability and mobility.
+
+</p>
+
+
+<div class="card-grid">
+
+
+<div class="card battery">
+
+<h3>
+Lithium-Ion
+</h3>
+
+<div class="battery-icon">
+
+<div class="battery-level"
+style="width:85%">
+</div>
+
+</div>
+
+<p>
+High energy density and widely used in mobile robots.
+</p>
+
+</div>
+
+
+<div class="card battery">
+
+<h3>
+Li-Po
+</h3>
+
+<div class="battery-icon">
+
+<div class="battery-level"
+style="width:90%">
+</div>
+
+</div>
+
+<p>
+High discharge capability and lightweight construction.
+</p>
+
+</div>
+
+
+<div class="card battery">
+
+<h3>
+LiFePO₄
+</h3>
+
+<div class="battery-icon">
+
+<div class="battery-level"
+style="width:75%">
+</div>
+
+</div>
+
+<p>
+Good safety, long cycle life and thermal stability.
+</p>
+
+</div>
+
+
+<div class="card battery">
+
+<h3>
+Lead Acid
+</h3>
+
+<div class="battery-icon">
+
+<div class="battery-level"
+style="width:40%">
+</div>
+
+</div>
+
+<p>
+Low cost but high weight and lower energy density.
+</p>
+
+</div>
+
+</div>
+
+
+<h3>
+Important Battery Parameters
+</h3>
+
+<table>
+
+<tr>
+<th>Parameter</th>
+<th>Meaning</th>
+<th>Importance</th>
+</tr>
+
+<tr>
+<td>Voltage</td>
+<td>Electrical potential</td>
+<td>Determines DC bus level</td>
+</tr>
+
+<tr>
+<td>Capacity</td>
+<td>Stored charge in Ah</td>
+<td>Determines operating duration</td>
+</tr>
+
+<tr>
+<td>Energy</td>
+<td>V × Ah</td>
+<td>Available stored energy</td>
+</tr>
+
+<tr>
+<td>C-rate</td>
+<td>Charge/discharge rate relative to capacity</td>
+<td>Determines current capability</td>
+</tr>
+
+<tr>
+<td>Energy density</td>
+<td>Wh/kg</td>
+<td>Important for mobile robots</td>
+</tr>
+
+<tr>
+<td>Power density</td>
+<td>W/kg</td>
+<td>Important for acceleration and peak loads</td>
+</tr>
+
+</table>
+
+
+<div class="formula">
+
+Battery Energy = Voltage × Capacity
+
+<br><br>
+
+E = V × Ah
+
+</div>
+
+
+<h3>
+Power Requirements of Different Robots
+</h3>
+
+
+<table>
+
+<tr>
+<th>Robot</th>
+<th>Typical Power Requirement</th>
+<th>Main Loads</th>
+</tr>
+
+<tr>
+<td>Mobile Robot</td>
+<td>100 W – 1 kW</td>
+<td>Motors, sensors, controller</td>
+</tr>
+
+<tr>
+<td>Drone</td>
+<td>100 W – several kW</td>
+<td>Propulsion, flight controller</td>
+</tr>
+
+<tr>
+<td>Humanoid</td>
+<td>Hundreds of W – several kW</td>
+<td>Multiple servo motors</td>
+</tr>
+
+<tr>
+<td>AGV</td>
+<td>1 kW – several kW</td>
+<td>Traction motors, steering, controller</td>
+</tr>
+
+</table>
+
+
+<div class="info">
+
+<b>Example:</b>
+
+A 24 V, 20 Ah battery stores approximately:
+
+<div class="formula">
+
+E = 24 × 20 = 480 Wh
+
+</div>
+
+If a robot consumes 240 W continuously, the ideal operating
+time is:
+
+<div class="formula">
+
+t = 480 / 240 = 2 hours
+
+</div>
+
+Actual operating time will be lower because of converter losses,
+motor losses, battery characteristics and changing load.
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     TAB 3 – MOSFET / IGBT
+===================================================== -->
+
+<section
+id="devices"
+class="tab-content">
+
+<h2>
+Power Switching Devices – MOSFET and IGBT
+</h2>
+
+<p>
+
+Power electronic converters use semiconductor switches to
+rapidly turn electrical power ON and OFF.
+
+</p>
+
+
+<div class="card-grid">
+
+
+<div class="card device">
+
+<h3>
+MOSFET
+</h3>
+
+<div class="device-symbol">
+
+MOSFET
+
+</div>
+
+<ul>
+
+<li>Voltage-controlled device</li>
+
+<li>Very fast switching</li>
+
+<li>Low gate power</li>
+
+<li>Excellent for high-frequency converters</li>
+
+<li>Common in low/medium voltage applications</li>
+
+</ul>
+
+</div>
+
+
+<div class="card device">
+
+<h3>
+IGBT
+</h3>
+
+<div class="device-symbol">
+
+IGBT
+
+</div>
+
+<ul>
+
+<li>Voltage-controlled gate</li>
+
+<li>Higher voltage capability</li>
+
+<li>Lower conduction loss at high voltage/current</li>
+
+<li>Slower than MOSFET</li>
+
+<li>Common in motor drives and inverters</li>
+
+</ul>
+
+</div>
+
+</div>
+
+
+<h3>
+Interactive Switching Demonstration
+</h3>
+
+<div class="canvas-container">
+
+<canvas id="switchCanvas">
+</canvas>
+
+</div>
+
+<button
+class="control"
+onclick="startSwitchAnimation()">
+
+Start Switching Animation
+
+</button>
+
+<button
+class="control"
+onclick="stopSwitchAnimation()">
+
+Stop
+
+</button>
+
+
+<h3>
+MOSFET vs IGBT
+</h3>
+
+<table>
+
+<tr>
+<th>Parameter</th>
+<th>MOSFET</th>
+<th>IGBT</th>
+</tr>
+
+<tr>
+<td>Switching speed</td>
+<td>Very high</td>
+<td>Moderate</td>
+</tr>
+
+<tr>
+<td>High frequency</td>
+<td>Excellent</td>
+<td>Moderate</td>
+</tr>
+
+<tr>
+<td>Voltage capability</td>
+<td>Low to medium</td>
+<td>Medium to high</td>
+</tr>
+
+<tr>
+<td>Typical application</td>
+<td>DC-DC converters</td>
+<td>Motor drives/inverters</td>
+</tr>
+
+<tr>
+<td>Conduction mechanism</td>
+<td>Resistive</td>
+<td>Voltage drop</td>
+</tr>
+
+</table>
+
+</section>
+
+
+<!-- =====================================================
+     TAB 4 – LOSSES / THERMAL
+===================================================== -->
+
+<section
+id="losses"
+class="tab-content">
+
+<h2>
+Switching Losses and Thermal Considerations
+</h2>
+
+<p>
+
+A practical switching device does not turn ON and OFF
+instantaneously. During switching transitions, voltage and
+current overlap, producing power loss.
+
+</p>
+
+
+<div class="formula">
+
+P = V × I
+
+</div>
+
+
+<h3>
+Switching Transition
+</h3>
+
+<div class="canvas-container">
+
+<canvas id="lossCanvas">
+</canvas>
+
+</div>
+
+
+<button
+class="control"
+onclick="animateLoss()">
+
+Animate Switching Loss
+
+</button>
+
+
+<h3>
+Main Semiconductor Losses
+</h3>
+
+
+<div class="card-grid">
+
+<div class="card">
+
+<h3>
+Conduction Loss
+</h3>
+
+<p>
+
+For a MOSFET:
+
+</p>
+
+<div class="formula">
+
+P<sub>cond</sub> = I<sub>RMS</sub>² R<sub>DS(on)</sub>
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Switching Loss
+</h3>
+
+<p>
+
+Approximate switching loss:
+
+</p>
+
+<div class="formula">
+
+P<sub>sw</sub>
+≈
+f<sub>s</sub>(E<sub>on</sub> + E<sub>off</sub>)
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Thermal Loss
+</h3>
+
+<p>
+
+The generated heat must be transferred to the environment
+through the package, heatsink and surrounding air.
+
+</p>
+
+</div>
+
+</div>
+
+
+<h3>
+Thermal Model
+</h3>
+
+<div class="diagram">
+
+<svg viewBox="0 0 1000 350">
+
+<defs>
+
+<marker
+id="thermalArrow"
+markerWidth="10"
+markerHeight="10"
+refX="8"
+refY="3"
+orient="auto">
+
+<path
+d="M0,0 L0,6 L9,3 z"
+fill="#dc2626"/>
+
+</marker>
+
+</defs>
+
+
+<rect
+x="70"
+y="120"
+width="170"
+height="90"
+rx="10"
+fill="#fee2e2"
+stroke="#dc2626"
+stroke-width="3"/>
+
+<text
+x="155"
+y="165"
+text-anchor="middle"
+font-size="20"
+font-weight="bold">
+
+Junction
+
+</text>
+
+<text
+x="155"
+y="190"
+text-anchor="middle">
+
+Power Device
+
+</text>
+
+
+<rect
+x="380"
+y="120"
+width="170"
+height="90"
+rx="10"
+fill="#fef3c7"
+stroke="#d97706"
+stroke-width="3"/>
+
+<text
+x="465"
+y="165"
+text-anchor="middle"
+font-size="20"
+font-weight="bold">
+
+Heatsink
+
+</text>
+
+<text
+x="465"
+y="190"
+text-anchor="middle">
+
+Thermal path
+
+</text>
+
+
+<rect
+x="690"
+y="120"
+width="170"
+height="90"
+rx="10"
+fill="#dcfce7"
+stroke="#16a34a"
+stroke-width="3"/>
+
+<text
+x="775"
+y="165"
+text-anchor="middle"
+font-size="20"
+font-weight="bold">
+
+Ambient
+
+</text>
+
+<text
+x="775"
+y="190"
+text-anchor="middle">
+
+Environment
+
+</text>
+
+
+<line
+x1="240"
+y1="165"
+x2="380"
+y2="165"
+stroke="#dc2626"
+stroke-width="4"
+marker-end="url(#thermalArrow)"/>
+
+<line
+x1="550"
+y1="165"
+x2="690"
+y2="165"
+stroke="#dc2626"
+stroke-width="4"
+marker-end="url(#thermalArrow)"/>
+
+</svg>
+
+</div>
+
+
+<div class="formula">
+
+T<sub>j</sub>
+≈
+T<sub>a</sub>
++
+P<sub>loss</sub>R<sub>θja</sub>
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     TAB 5 – DC BUS
+===================================================== -->
+
+<section
+id="dcBus"
+class="tab-content">
+
+<h2>
+DC Bus Architecture in Robotics
+</h2>
+
+<p>
+
+The DC bus acts as a common electrical energy distribution
+point between the battery and different power converters.
+
+</p>
+
+
+<div class="diagram">
+
+<svg
+id="dcBusSVG"
+viewBox="0 0 1100 550">
+
+<defs>
+
+<marker
+id="busArrow"
+markerWidth="10"
+markerHeight="10"
+refX="8"
+refY="3"
+orient="auto">
+
+<path
+d="M0,0 L0,6 L9,3 z"
+fill="#2563eb"/>
+
+</marker>
+
+</defs>
+
+
+<!-- Battery -->
+
+<rect
+x="50"
+y="210"
+width="160"
+height="100"
+rx="12"
+fill="#dbeafe"
+stroke="#2563eb"
+stroke-width="3"/>
+
+<text
+x="130"
+y="255"
+text-anchor="middle"
+font-size="20"
+font-weight="bold">
+
+Battery
+
+</text>
+
+<text
+x="130"
+y="280"
+text-anchor="middle">
+
+48 V
+
+</text>
+
+
+<!-- Bus -->
+
+<rect
+x="300"
+y="120"
+width="500"
+height="280"
+rx="15"
+fill="#dcfce7"
+stroke="#16a34a"
+stroke-width="4"/>
+
+<text
+x="550"
+y="180"
+text-anchor="middle"
+font-size="26"
+font-weight="bold">
+
+DC BUS
+
+</text>
+
+<text
+x="550"
+y="210"
+text-anchor="middle">
+
+Common energy distribution
+
+</text>
+
+
+<!-- Capacitor -->
+
+<rect
+x="490"
+y="250"
+width="120"
+height="80"
+rx="10"
+fill="#ffffff"
+stroke="#111827"
+stroke-width="3"/>
+
+<text
+x="550"
+y="285"
+text-anchor="middle"
+font-size="18">
+
+DC Link
+
+</text>
+
+<text
+x="550"
+y="310"
+text-anchor="middle">
+
+Capacitor
+
+</text>
+
+
+<!-- Converters -->
+
+<rect
+x="880"
+y="60"
+width="160"
+height="70"
+rx="10"
+fill="#fef3c7"
+stroke="#d97706"
+stroke-width="3"/>
+
+<text
+x="960"
+y="102"
+text-anchor="middle">
+
+Buck
+
+</text>
+
+
+<rect
+x="880"
+y="180"
+width="160"
+height="70"
+rx="10"
+fill="#fef3c7"
+stroke="#d97706"
+stroke-width="3"/>
+
+<text
+x="960"
+y="222"
+text-anchor="middle">
+
+Inverter
+
+</text>
+
+
+<rect
+x="880"
+y="300"
+width="160"
+height="70"
+rx="10"
+fill="#fef3c7"
+stroke="#d97706"
+stroke-width="3"/>
+
+<text
+x="960"
+y="342"
+text-anchor="middle">
+
+Bidirectional
+
+</text>
+
+
+<!-- Battery connection -->
+
+<line
+x1="210"
+y1="260"
+x2="300"
+y2="260"
+stroke="#2563eb"
+stroke-width="5"
+marker-end="url(#busArrow)"/>
+
+
+<!-- bus connections -->
+
+<line
+x1="800"
+y1="155"
+x2="880"
+y2="95"
+stroke="#2563eb"
+stroke-width="4"
+marker-end="url(#busArrow)"/>
+
+<line
+x1="800"
+y1="250"
+x2="880"
+y2="215"
+stroke="#2563eb"
+stroke-width="4"
+marker-end="url(#busArrow)"/>
+
+<line
+x1="800"
+y1="330"
+x2="880"
+y2="335"
+stroke="#2563eb"
+stroke-width="4"
+marker-end="url(#busArrow)"/>
+
+
+</svg>
+
+</div>
+
+
+<h3>
+Functions of the DC Bus
+</h3>
+
+<div class="card-grid">
+
+<div class="card">
+
+<h3>
+Energy Distribution</h3>
+
+<p>
+Provides a common voltage source for multiple converter
+stages.
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>
+Voltage Stabilization</h3>
+
+<p>
+DC-link capacitors reduce voltage fluctuations and high-frequency
+ripple.
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>
+Energy Buffer</h3>
+
+<p>
+The DC-link capacitor temporarily stores electrical energy
+during rapid load changes.
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>
+Regeneration</h3>
+
+<p>
+With a bidirectional converter, braking energy can be returned
+to the battery.
+</p>
+
+</div>
+
+</div>
+
+
+<h3>
+Animated Energy Flow</h3>
+
+<div class="canvas-container">
+
+<canvas id="busCanvas"></canvas>
+
+</div>
+
+<button
+class="control"
+onclick="startBusAnimation()">
+
+Start Energy Flow
+
+</button>
+
+<button
+class="control"
+onclick="stopBusAnimation()">
+
+Stop
+
+</button>
+
+</section>
+
+
+<!-- =====================================================
+     TAB 6 – CLASSIFICATION
+===================================================== -->
+
+<section
+id="classification"
+class="tab-content">
+
+<h2>
+Classification of Power Converters
+</h2>
+
+
+<div class="card-grid">
+
+<div class="card">
+
+<h3>
+AC → DC</h3>
+
+<p>
+Rectifier
+</p>
+
+<p>
+Example:
+AC mains to DC bus.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+DC → DC</h3>
+
+<p>
+Buck, Boost, Buck-Boost, Isolated converters.
+</p>
+
+<p>
+Example:
+Battery voltage conversion.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+DC → AC</h3>
+
+<p>
+Inverter
+</p>
+
+<p>
+Example:
+BLDC, induction and servo motor drives.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+AC → AC</h3>
+
+<p>
+AC voltage/frequency conversion.
+</p>
+
+<p>
+Example:
+Variable-frequency motor drives.
+</p>
+
+</div>
+
+</div>
+
+
+<div class="diagram">
+
+<svg viewBox="0 0 1100 550">
+
+<rect
+x="430"
+y="220"
+width="240"
+height="100"
+rx="15"
+fill="#dbeafe"
+stroke="#2563eb"
+stroke-width="4"/>
+
+<text
+x="550"
+y="280"
+text-anchor="middle"
+font-size="24"
+font-weight="bold">
+
+POWER CONVERTERS
+
+</text>
+
+
+<rect
+x="70"
+y="70"
+width="210"
+height="80"
+rx="12"
+fill="#fef3c7"
+stroke="#d97706"
+stroke-width="3"/>
+
+<text
+x="175"
+y="118"
+text-anchor="middle"
+font-size="19">
+
+AC → DC
+
+</text>
+
+
+<rect
+x="820"
+y="70"
+width="210"
+height="80"
+rx="12"
+fill="#dcfce7"
+stroke="#16a34a"
+stroke-width="3"/>
+
+<text
+x="925"
+y="118"
+text-anchor="middle"
+font-size="19">
+
+DC → DC
+
+</text>
+
+
+<rect
+x="70"
+y="390"
+width="210"
+height="80"
+rx="12"
+fill="#f3e8ff"
+stroke="#9333ea"
+stroke-width="3"/>
+
+<text
+x="175"
+y="438"
+text-anchor="middle"
+font-size="19">
+
+DC → AC
+
+</text>
+
+
+<rect
+x="820"
+y="390"
+width="210"
+height="80"
+rx="12"
+fill="#fee2e2"
+stroke="#dc2626"
+stroke-width="3"/>
+
+<text
+x="925"
+y="438"
+text-anchor="middle"
+font-size="19">
+
+AC → AC
+
+</text>
+
+
+<line
+x1="280"
+y1="110"
+x2="430"
+y2="245"
+stroke="#2563eb"
+stroke-width="4"/>
+
+<line
+x1="820"
+y1="110"
+x2="670"
+y2="245"
+stroke="#2563eb"
+stroke-width="4"/>
+
+<line
+x1="280"
+y1="430"
+x2="430"
+y2="300"
+stroke="#2563eb"
+stroke-width="4"/>
+
+<line
+x1="820"
+y1="430"
+x2="670"
+y2="300"
+stroke="#2563eb"
+stroke-width="4"/>
+
+</svg>
+
+</div>
+
+
+<h3>
+Examples in Robotics
+</h3>
+
+<table>
+
+<tr>
+<th>Converter</th>
+<th>Robotic Application</th>
+</tr>
+
+<tr>
+<td>Buck</td>
+<td>Controller, sensor and AI processor supply</td>
+</tr>
+
+<tr>
+<td>Boost</td>
+<td>Increase battery voltage</td>
+</tr>
+
+<tr>
+<td>Buck-Boost</td>
+<td>Variable battery voltage systems</td>
+</tr>
+
+<tr>
+<td>Inverter</td>
+<td>BLDC, PMSM and induction motor drives</td>
+</tr>
+
+<tr>
+<td>Bidirectional DC-DC</td>
+<td>Battery charging and regenerative braking</td>
+</tr>
+
+<tr>
+<td>Isolated DC-DC</td>
+<td>Industrial robot auxiliary supplies</td>
+</tr>
+
+</table>
+
+</section>
+
+
+<!-- =====================================================
+     TAB 7 – CONVERTER SELECTION
+===================================================== -->
+
+<section
+id="selection"
+class="tab-content">
+
+<h2>
+Converter Selection for Robotic Applications
+</h2>
+
+<p>
+
+The converter should not be selected only based on voltage.
+Current, power, efficiency, switching frequency, isolation,
+thermal performance, EMI and control requirements must also
+be considered.
+
+</p>
+
+
+<div class="card-grid">
+
+<div class="card">
+
+<h3>
+1. Input Voltage</h3>
+
+<p>
+Determine minimum, nominal and maximum input voltage.
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>
+2. Output Voltage</h3>
+
+<p>
+Determine the required voltage range for the load.
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>
+3. Power Rating</h3>
+
+<p>
+Calculate continuous and peak load power.
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>
+4. Efficiency</h3>
+
+<p>
+Higher efficiency reduces battery energy consumption and heat.
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>
+5. Isolation</h3>
+
+<p>
+Determine whether galvanic isolation is required.
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>
+6. Switching Frequency</h3>
+
+<p>
+Higher frequency reduces passive component size but may
+increase switching losses and EMI.
+</p>
+
+</div>
+
+</div>
+
+
+<h3>
+Converter Selection Decision Flow
+</h3>
+
+
+<div class="flow">
+
+<div class="flow-box">
+Input / Output
+</div>
+
+<div class="arrow">→</div>
+
+<div class="flow-box">
+Voltage Ratio
+</div>
+
+<div class="arrow">→</div>
+
+<div class="flow-box">
+Power
+</div>
+
+<div class="arrow">→</div>
+
+<div class="flow-box">
+Isolation?
+</div>
+
+<div class="arrow">→</div>
+
+<div class="flow-box">
+Efficiency / EMI
+</div>
+
+<div class="arrow">→</div>
+
+<div class="flow-box">
+Select Converter
+</div>
+
+</div>
+
+
+<h3>
+Interactive Converter Selector
+</h3>
+
+
+<div class="card">
+
+<label>
+Input Voltage
+</label>
+
+<input
+id="vinSelect"
+type="number"
+value="24"
+style="padding:10px;width:150px;">
+
+
+<label style="margin-top:15px;">
+Output Voltage
+</label>
+
+<input
+id="voutSelect"
+type="number"
+value="12"
+style="padding:10px;width:150px;">
+
+
+<label style="margin-top:15px;">
+Bidirectional Requirement
+</label>
+
+<select
+id="biSelect"
+style="padding:10px;width:200px;">
+
+<option value="no">
+No
+</option>
+
+<option value="yes">
+Yes
+</option>
+
+</select>
+
+
+<br>
+
+<button
+class="control"
+onclick="selectConverter()">
+
+Recommend Converter
+
+</button>
+
+
+<div
+id="converterResult"
+class="info">
+
+Enter specifications and click
+<b>Recommend Converter</b>.
+
+</div>
+
+</div>
+
+
+<h3>
+Important Buck Converter Relation
+</h3>
+
+<div class="formula">
+
+V<sub>o</sub> = D V<sub>in</sub>
+
+<br><br>
+
+D = V<sub>o</sub> / V<sub>in</sub>
+
+</div>
+
+
+<div class="info">
+
+Example:
+
+For a 24 V input and 12 V output:
+
+<div class="formula">
+
+D = 12 / 24 = 0.5
+
+</div>
+
+Therefore the ideal duty ratio is 50%.
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     TAB 8 – ISOLATION
+===================================================== -->
+
+<section
+id="isolation"
+class="tab-content">
+
+<h2>
+Isolation in Robotic Power Systems
+</h2>
+
+<p>
+
+Galvanic isolation electrically separates the input and output
+circuits while transferring energy magnetically or optically.
+
+</p>
+
+
+<h3>
+Isolated DC-DC Converter Concept
+</h3>
+
+
+<div class="diagram">
+
+<svg viewBox="0 0 1100 450">
+
+<defs>
+
+<marker
+id="isoArrow"
+markerWidth="10"
+markerHeight="10"
+refX="8"
+refY="3"
+orient="auto">
+
+<path
+d="M0,0 L0,6 L9,3 z"
+fill="#2563eb"/>
+
+</marker>
+
+</defs>
+
+
+<rect
+x="50"
+y="160"
+width="170"
+height="100"
+rx="12"
+fill="#dbeafe"
+stroke="#2563eb"
+stroke-width="3"/>
+
+<text
+x="135"
+y="205"
+text-anchor="middle"
+font-size="20"
+font-weight="bold">
+
+DC Input
+
+</text>
+
+<text
+x="135"
+y="235"
+text-anchor="middle">
+
+Battery
+
+</text>
+
+
+<rect
+x="330"
+y="140"
+width="190"
+height="140"
+rx="12"
+fill="#fef3c7"
+stroke="#d97706"
+stroke-width="3"/>
+
+<text
+x="425"
+y="190"
+text-anchor="middle"
+font-size="20"
+font-weight="bold">
+
+HF Switching
+
+</text>
+
+<text
+x="425"
+y="225"
+text-anchor="middle">
+
+MOSFET / IGBT
+
+</text>
+
+<text
+x="425"
+y="255"
+text-anchor="middle">
+
+PWM
+
+</text>
+
+
+<!-- transformer -->
+
+<line
+x1="650"
+y1="120"
+x2="650"
+y2="310"
+stroke="#111827"
+stroke-width="5"/>
+
+<line
+x1="680"
+y1="120"
+x2="680"
+y2="310"
+stroke="#111827"
+stroke-width="5"/>
+
+
+<path
+d="M620 145
+C590 160 590 180 620 195
+C650 210 650 230 620 245
+C590 260 590 280 620 295"
+fill="none"
+stroke="#2563eb"
+stroke-width="5"/>
+
+
+<path
+d="M710 145
+C740 160 740 180 710 195
+C680 210 680 230 710 245
+C740 260 740 280 710 295"
+fill="none"
+stroke="#dc2626"
+stroke-width="5"/>
+
+
+<text
+x="665"
+y="350"
+text-anchor="middle"
+font-size="18"
+font-weight="bold">
+
+HIGH-FREQUENCY
+TRANSFORMER
+
+</text>
+
+
+<rect
+x="830"
+y="160"
+width="190"
+height="100"
+rx="12"
+fill="#dcfce7"
+stroke="#16a34a"
+stroke-width="3"/>
+
+<text
+x="925"
+y="205"
+text-anchor="middle"
+font-size="20"
+font-weight="bold">
+
+DC Output
+
+</text>
+
+<text
+x="925"
+y="235"
+text-anchor="middle">
+
+Isolated Load
+
+</text>
+
+
+<line
+x1="220"
+y1="210"
+x2="330"
+y2="210"
+stroke="#2563eb"
+stroke-width="4"
+marker-end="url(#isoArrow)"/>
+
+<line
+x1="520"
+y1="210"
+x2="600"
+y2="210"
+stroke="#2563eb"
+stroke-width="4"
+marker-end="url(#isoArrow)"/>
+
+<line
+x1="730"
+y1="210"
+x2="830"
+y2="210"
+stroke="#2563eb"
+stroke-width="4"
+marker-end="url(#isoArrow)"/>
+
+</svg>
+
+</div>
+
+
+<h3>
+Why Isolation is Used
+</h3>
+
+<ul>
+
+<li>Electrical safety</li>
+
+<li>Ground-loop prevention</li>
+
+<li>Protection of sensitive electronics</li>
+
+<li>Noise reduction</li>
+
+<li>Different ground domains</li>
+
+<li>Industrial robot power supplies</li>
+
+</ul>
+
+
+<div class="warning">
+
+Isolation generally increases converter complexity, size and
+cost. The transformer and insulation must be designed for the
+required voltage, frequency and safety requirements.
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     TAB 9 – EMI EMC
+===================================================== -->
+
+<section
+id="emi"
+class="tab-content">
+
+<h2>
+EMI / EMC Considerations in Robotic Systems
+</h2>
+
+<p>
+
+Fast switching devices generate rapidly changing voltage and
+current. These transitions can produce electromagnetic
+interference.
+
+</p>
+
+
+<h3>
+EMI Generation Mechanism
+</h3>
+
+
+<div class="canvas-container">
+
+<canvas id="emiCanvas"></canvas>
+
+</div>
+
+
+<button
+class="control"
+onclick="startEMIAnimation()">
+
+Start EMI Animation
+
+</button>
+
+
+<button
+class="control"
+onclick="stopEMIAnimation()">
+
+Stop
+
+</button>
+
+
+<h3>
+Conducted and Radiated EMI
+</h3>
+
+
+<div class="card-grid">
+
+<div class="card">
+
+<h3>
+Conducted EMI
+</h3>
+
+<p>
+
+Noise travels through electrical conductors such as DC
+power cables, signal grounds and supply rails.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Radiated EMI
+</h3>
+
+<p>
+
+High-frequency currents and voltage transitions can create
+electromagnetic fields that couple to nearby circuits.
+
+</p>
+
+</div>
+
+</div>
+
+
+<h3>
+EMI Reduction Techniques
+</h3>
+
+<table>
+
+<tr>
+<th>Technique</th>
+<th>Purpose</th>
+</tr>
+
+<tr>
+<td>EMI Filter</td>
+<td>Attenuates conducted high-frequency noise</td>
+</tr>
+
+<tr>
+<td>Snubber</td>
+<td>Reduces voltage spikes and ringing</td>
+</tr>
+
+<tr>
+<td>Gate Resistor</td>
+<td>Controls switching speed</td>
+</tr>
+
+<tr>
+<td>Dead Time</td>
+<td>Prevents shoot-through</td>
+</tr>
+
+<tr>
+<td>Proper Grounding</td>
+<td>Reduces unwanted current paths</td>
+</tr>
+
+<tr>
+<td>Short PCB Loops</td>
+<td>Reduces parasitic inductance</td>
+</tr>
+
+<tr>
+<td>Shielding</td>
+<td>Reduces radiated coupling</td>
+</tr>
+
+</table>
+
+
+<div class="info">
+
+<b>Important:</b>
+
+High switching frequency can reduce passive component size,
+but it can also increase switching losses and EMI. Therefore,
+converter design is always a compromise between size,
+efficiency, thermal performance and electromagnetic compatibility.
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     TAB 10 – QUIZ
+===================================================== -->
+
+<section
+id="quiz"
+class="tab-content">
+
+<h2>
+Unit I – Quick Assessment
+</h2>
+
+
+<div class="quiz">
+
+<h3>
+1. Which battery parameter is expressed in Wh/kg?
+</h3>
+
+<label>
+<input
+type="radio"
+name="q1"
+value="a">
+
+Current density
+</label>
+
+<br>
+
+<label>
+<input
+type="radio"
+name="q1"
+value="b">
+
+Energy density
+</label>
+
+<br>
+
+<label>
+<input
+type="radio"
+name="q1"
+value="c">
+
+Switching frequency
+</label>
+
+<br>
+
+<label>
+<input
+type="radio"
+name="q1"
+value="d">
+
+Thermal resistance
+</label>
+
+</div>
+
+
+<div class="quiz">
+
+<h3>
+2. Which device is generally suitable for high-frequency
+DC-DC switching?
+</h3>
+
+<label>
+<input
+type="radio"
+name="q2"
+value="a">
+
+MOSFET
+</label>
+
+<br>
+
+<label>
+<input
+type="radio"
+name="q2"
+value="b">
+
+Fuse
+</label>
+
+<br>
+
+<label>
+<input
+type="radio"
+name="q2"
+value="c">
+
+Relay
+</label>
+
+<br>
+
+<label>
+<input
+type="radio"
+name="q2"
+value="d">
+
+Transformer
+</label>
+
+</div>
+
+
+<div class="quiz">
+
+<h3>
+3. For an ideal buck converter, Vin = 24 V and D = 0.5.
+What is Vo?
+</h3>
+
+<label>
+<input
+type="radio"
+name="q3"
+value="a">
+
+6 V
+</label>
+
+<br>
+
+<label>
+<input
+type="radio"
+name="q3"
+value="b">
+
+12 V
+</label>
+
+<br>
+
+<label>
+<input
+type="radio"
+name="q3"
+value="c">
+
+24 V
+</label>
+
+<br>
+
+<label>
+<input
+type="radio"
+name="q3"
+value="d">
+
+48 V
+</label>
+
+</div>
+
+
+<div class="quiz">
+
+<h3>
+4. What is the main function of a DC bus?
+</h3>
+
+<label>
+<input
+type="radio"
+name="q4"
+value="a">
+
+Mechanical energy storage
+</label>
+
+<br>
+
+<label>
+<input
+type="radio"
+name="q4"
+value="b">
+
+Common electrical energy distribution
+</label>
+
+<br>
+
+<label>
+<input
+type="radio"
+name="q4"
+value="c">
+
+Position sensing
+</label>
+
+<br>
+
+<label>
+<input
+type="radio"
+name="q4"
+value="d">
+
+Encoder communication
+</label>
+
+</div>
+
+
+<div class="quiz">
+
+<h3>
+5. What is one important purpose of galvanic isolation?
+</h3>
+
+<label>
+<input
+type="radio"
+name="q5"
+value="a">
+
+Increase motor speed
+</label>
+
+<br>
+
+<label>
+<input
+type="radio"
+name="q5"
+value="b">
+
+Electrical separation between circuits
+</label>
+
+<br>
+
+<label>
+<input
+type="radio"
+name="q5"
+value="c">
+
+Increase switching loss
+</label>
+
+<br>
+
+<label>
+<input
+type="radio"
+name="q5"
+value="d">
+
+Increase battery weight
+</label>
+
+</div>
+
+
+<br>
+
+<button
+class="control"
+onclick="evaluateQuiz()">
+
+Submit Quiz
+
+</button>
+
+
+<div
+id="quizResult"
+class="quiz-result">
+
+</div>
+
+
+</section>
+
+
+</div>
+
+</div>
+
+
+<footer>
+
+Power Electronics for Robotics |
+Interactive Learning Module
+
+</footer>
+
+
+
+<script>
+
+/* =========================================================
+   TAB CONTROL
+========================================================= */
+
+function openTab(tabId,button){
+
+    const contents =
+        document.querySelectorAll(
+            ".tab-content"
+        );
+
+    const tabs =
+        document.querySelectorAll(
+            ".tab"
+        );
+
+
+    contents.forEach(
+        content =>
+            content.classList.remove(
+                "active"
+            )
+    );
+
+
+    tabs.forEach(
+        tab =>
+            tab.classList.remove(
+                "active"
+            )
+    );
+
+
+    document
+        .getElementById(tabId)
+        .classList.add("active");
+
+
+    button.classList.add("active");
+
+}
+
+
+/* =========================================================
+   CANVAS SETUP
+========================================================= */
+
+function prepareCanvas(canvas){
+
+    const dpr =
+        window.devicePixelRatio || 1;
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+    canvas.width =
+        rect.width * dpr;
+
+    canvas.height =
+        rect.height * dpr;
+
+    const ctx =
+        canvas.getContext("2d");
+
+    ctx.scale(dpr,dpr);
+
+    return ctx;
+
+}
+
+
+/* =========================================================
+   SWITCHING ANIMATION
+========================================================= */
+
+let switchAnimation = null;
+
+let switchTime = 0;
+
+
+function startSwitchAnimation(){
+
+    cancelAnimationFrame(
+        switchAnimation
+    );
+
+    function animate(){
+
+        const canvas =
+            document.getElementById(
+                "switchCanvas"
+            );
+
+        const ctx =
+            prepareCanvas(canvas);
+
+
+        const w =
+            canvas.clientWidth;
+
+        const h =
+            canvas.clientHeight;
+
+
+        ctx.clearRect(
+            0,
+            0,
+            w,
+            h
+        );
+
+
+        /* Grid */
+
+        ctx.strokeStyle =
+            "#334155";
+
+        ctx.lineWidth = 1;
+
+
+        for(
+            let x=0;
+            x<w;
+            x+=50
+        ){
+
+            ctx.beginPath();
+
+            ctx.moveTo(x,0);
+
+            ctx.lineTo(x,h);
+
+            ctx.stroke();
+
+        }
+
+
+        for(
+            let y=0;
+            y<h;
+            y+=50
+        ){
+
+            ctx.beginPath();
+
+            ctx.moveTo(0,y);
+
+            ctx.lineTo(w,y);
+
+            ctx.stroke();
+
+        }
+
+
+        /* Voltage */
+
+        ctx.beginPath();
+
+        ctx.strokeStyle =
+            "#60a5fa";
+
+        ctx.lineWidth=3;
+
+
+        for(
+            let x=0;
+            x<w;
+            x++
+        ){
+
+            const period=120;
+
+            const phase =
+                (
+                    x +
+                    switchTime*2
+                ) % period;
+
+            const y =
+                phase < 60
+                ? 70
+                : 240;
+
+            if(x===0)
+                ctx.moveTo(x,y);
+
+            else
+                ctx.lineTo(x,y);
+
+        }
+
+        ctx.stroke();
+
+
+        /* Current */
+
+        ctx.beginPath();
+
+        ctx.strokeStyle =
+            "#f87171";
+
+        ctx.lineWidth=3;
+
+
+        for(
+            let x=0;
+            x<w;
+            x++
+        ){
+
+            const period=120;
+
+            const phase =
+                (
+                    x +
+                    switchTime*2
+                ) % period;
+
+            let y=0;
+
+            if(phase<15)
+                y=240-(phase/15)*160;
+
+            else if(phase<45)
+                y=80;
+
+            else
+                y=240;
+
+
+            if(x===0)
+                ctx.moveTo(x,y);
+
+            else
+                ctx.lineTo(x,y);
+
+        }
+
+        ctx.stroke();
+
+
+        /* Labels */
+
+        ctx.fillStyle="#e2e8f0";
+
+        ctx.font="16px Arial";
+
+        ctx.fillText(
+            "Voltage",
+            20,
+            50
+        );
+
+        ctx.fillText(
+            "Current",
+            20,
+            280
+        );
+
+        ctx.fillText(
+            "Switching overlap → power loss",
+            20,
+            h-20
+        );
+
+
+        switchTime += 1;
+
+        switchAnimation =
+            requestAnimationFrame(
+                animate
+            );
+
+    }
+
+    animate();
+
+}
+
+
+function stopSwitchAnimation(){
+
+    cancelAnimationFrame(
+        switchAnimation
+    );
+
+}
+
+
+/* =========================================================
+   SWITCHING LOSS ANIMATION
+========================================================= */
+
+let lossTime=0;
+let lossAnimation=null;
+
+
+function animateLoss(){
+
+    cancelAnimationFrame(
+        lossAnimation
+    );
+
+
+    function draw(){
+
+        const canvas =
+            document.getElementById(
+                "lossCanvas"
+            );
+
+        const ctx =
+            prepareCanvas(canvas);
+
+
+        const w =
+            canvas.clientWidth;
+
+        const h =
+            canvas.clientHeight;
+
+
+        ctx.clearRect(
+            0,
+            0,
+            w,
+            h
+        );
+
+
+        ctx.strokeStyle="#334155";
+
+        for(
+            let x=0;
+            x<w;
+            x+=50
+        ){
+
+            ctx.beginPath();
+
+            ctx.moveTo(x,0);
+
+            ctx.lineTo(x,h);
+
+            ctx.stroke();
+
+        }
+
+
+        /* voltage */
+
+        ctx.beginPath();
+
+        ctx.strokeStyle="#60a5fa";
+
+        ctx.lineWidth=4;
+
+
+        ctx.moveTo(
+            20,
+            80
+        );
+
+        ctx.lineTo(
+            w*.45,
+            80
+        );
+
+        ctx.lineTo(
+            w*.55,
+            230
+        );
+
+        ctx.lineTo(
+            w,
+            230
+        );
+
+        ctx.stroke();
+
+
+        /* current */
+
+        ctx.beginPath();
+
+        ctx.strokeStyle="#f87171";
+
+        ctx.lineWidth=4;
+
+
+        ctx.moveTo(
+            20,
+            230
+        );
+
+        ctx.lineTo(
+            w*.45,
+            230
+        );
+
+        ctx.lineTo(
+            w*.55,
+            80
+        );
+
+        ctx.lineTo(
+            w,
+            80
+        );
+
+        ctx.stroke();
+
+
+        /* overlap */
+
+        ctx.fillStyle=
+            "rgba(250,204,21,.35)";
+
+        ctx.fillRect(
+            w*.45,
+            80,
+            w*.10,
+            150
+        );
+
+
+        ctx.fillStyle="#f8fafc";
+
+        ctx.font="16px Arial";
+
+        ctx.fillText(
+            "VDS",
+            25,
+            60
+        );
+
+        ctx.fillText(
+            "ID",
+            25,
+            215
+        );
+
+        ctx.fillText(
+            "Switching Loss",
+            w*.43,
+            300
+        );
+
+
+        lossTime++;
+
+        if(lossTime<150){
+
+            lossAnimation =
+                requestAnimationFrame(
+                    draw
+                );
+
+        }
+
+    }
+
+
+    draw();
+
+}
+
+
+/* =========================================================
+   DC BUS ANIMATION
+========================================================= */
+
+let busAnimation=null;
+let busPosition=0;
+
+
+function startBusAnimation(){
+
+    cancelAnimationFrame(
+        busAnimation
+    );
+
+
+    function draw(){
+
+        const canvas =
+            document.getElementById(
+                "busCanvas"
+            );
+
+        const ctx =
+            prepareCanvas(canvas);
+
+
+        const w =
+            canvas.clientWidth;
+
+        const h =
+            canvas.clientHeight;
+
+
+        ctx.clearRect(
+            0,
+            0,
+            w,
+            h
+        );
+
+
+        ctx.strokeStyle="#334155";
+
+        ctx.lineWidth=5;
+
+
+        const y=h/2;
+
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            40,
+            y
+        );
+
+        ctx.lineTo(
+            w-40,
+            y
+        );
+
+        ctx.stroke();
+
+
+        /* Nodes */
+
+        const nodes=[
+            {
+                x:80,
+                text:"Battery"
+            },
+            {
+                x:w*.35,
+                text:"DC Bus"
+            },
+            {
+                x:w*.60,
+                text:"Converter"
+            },
+            {
+                x:w*.85,
+                text:"Load"
+            }
+        ];
+
+
+        nodes.forEach(
+            node=>{
+
+                ctx.beginPath();
+
+                ctx.arc(
+                    node.x,
+                    y,
+                    18,
+                    0,
+                    Math.PI*2
+                );
+
+                ctx.fillStyle="#2563eb";
+
+                ctx.fill();
+
+
+                ctx.fillStyle="#f8fafc";
+
+                ctx.font="14px Arial";
+
+                ctx.textAlign="center";
+
+                ctx.fillText(
+                    node.text,
+                    node.x,
+                    y+50
+                );
+
+            }
+        );
+
+
+        /* moving energy particles */
+
+        for(
+            let i=0;
+            i<8;
+            i++
+        ){
+
+            let x =
+                (
+                    busPosition +
+                    i*(w/8)
+                ) % w;
+
+
+            if(x<40)
+                x=40;
+
+
+            ctx.beginPath();
+
+            ctx.arc(
+                x,
+                y,
+                7,
+                0,
+                Math.PI*2
+            );
+
+            ctx.fillStyle="#facc15";
+
+            ctx.fill();
+
+        }
+
+
+        busPosition+=3;
+
+        busAnimation =
+            requestAnimationFrame(
+                draw
+            );
+
+    }
+
+
+    draw();
+
+}
+
+
+function stopBusAnimation(){
+
+    cancelAnimationFrame(
+        busAnimation
+    );
+
+}
+
+
+/* =========================================================
+   EMI ANIMATION
+========================================================= */
+
+let emiAnimation=null;
+let emiTime=0;
+
+
+function startEMIAnimation(){
+
+    cancelAnimationFrame(
+        emiAnimation
+    );
+
+
+    function draw(){
+
+        const canvas =
+            document.getElementById(
+                "emiCanvas"
+            );
+
+        const ctx =
+            prepareCanvas(canvas);
+
+
+        const w =
+            canvas.clientWidth;
+
+        const h =
+            canvas.clientHeight;
+
+
+        ctx.clearRect(
+            0,
+            0,
+            w,
+            h
+        );
+
+
+        /* converter */
+
+        ctx.fillStyle="#1e3a8a";
+
+        ctx.fillRect(
+            w*.1,
+            h*.35,
+            w*.25,
+            h*.3
+        );
+
+
+        ctx.fillStyle="white";
+
+        ctx.font="20px Arial";
+
+        ctx.textAlign="center";
+
+        ctx.fillText(
+            "Power Converter",
+            w*.225,
+            h*.52
+        );
+
+
+        /* cable */
+
+        ctx.strokeStyle="#94a3b8";
+
+        ctx.lineWidth=8;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            w*.35,
+            h*.5
+        );
+
+        ctx.lineTo(
+            w*.8,
+            h*.5
+        );
+
+        ctx.stroke();
+
+
+        /* EMI waves */
+
+        for(
+            let r=20;
+            r<180;
+            r+=30
+        ){
+
+            const radius =
+                r +
+                (
+                    emiTime%30
+                );
+
+
+            ctx.beginPath();
+
+            ctx.arc(
+                w*.48,
+                h*.5,
+                radius,
+                0,
+                Math.PI*2
+            );
+
+            ctx.strokeStyle=
+                "rgba(248,113,113,"+
+                (1-radius/220)+
+                ")";
+
+            ctx.lineWidth=2;
+
+            ctx.stroke();
+
+        }
+
+
+        ctx.fillStyle="#f8fafc";
+
+        ctx.font="17px Arial";
+
+        ctx.fillText(
+            "High-frequency switching",
+            w*.225,
+            h*.28
+        );
+
+
+        ctx.fillText(
+            "EMI",
+            w*.48,
+            h*.18
+        );
+
+
+        ctx.fillText(
+            "Sensitive electronics",
+            w*.8,
+            h*.65
+        );
+
+
+        emiTime++;
+
+        emiAnimation =
+            requestAnimationFrame(
+                draw
+            );
+
+    }
+
+
+    draw();
+
+}
+
+
+function stopEMIAnimation(){
+
+    cancelAnimationFrame(
+        emiAnimation
+    );
+
+}
+
+
+/* =========================================================
+   CONVERTER SELECTOR
+========================================================= */
+
+function selectConverter(){
+
+    const vin =
+        parseFloat(
+            document.getElementById(
+                "vinSelect"
+            ).value
+        );
+
+    const vout =
+        parseFloat(
+            document.getElementById(
+                "voutSelect"
+            ).value
+        );
+
+    const bidirectional =
+        document.getElementById(
+            "biSelect"
+        ).value;
+
+
+    let recommendation="";
+
+
+    if(
+        bidirectional === "yes"
+    ){
+
+        recommendation =
+            "Recommended: Bidirectional DC-DC converter. " +
+            "Suitable for battery charging and regenerative " +
+            "braking applications.";
+
+    }
+
+    else if(
+        vout < vin
+    ){
+
+        const D =
+            vout/vin;
+
+        recommendation =
+            "Recommended: BUCK converter. " +
+            "Ideal duty ratio ≈ " +
+            (D*100).toFixed(1) +
+            "%.";
+
+    }
+
+    else if(
+        vout > vin
+    ){
+
+        const D =
+            1-(vin/vout);
+
+        recommendation =
+            "Recommended: BOOST converter. " +
+            "Ideal duty ratio ≈ " +
+            (D*100).toFixed(1) +
+            "%.";
+
+    }
+
+    else{
+
+        recommendation =
+            "Input and output voltages are approximately equal. " +
+            "A direct DC connection may be possible, subject to " +
+            "regulation and protection requirements.";
+
+    }
+
+
+    document
+        .getElementById(
+            "converterResult"
+        )
+        .innerHTML =
+
+        "<b>"+recommendation+"</b>";
+
+}
+
+
+/* =========================================================
+   QUIZ EVALUATION
+========================================================= */
+
+function evaluateQuiz(){
+
+    const answers={
+        q1:"b",
+        q2:"a",
+        q3:"b",
+        q4:"b",
+        q5:"b"
+    };
+
+
+    let score=0;
+
+
+    Object.keys(answers)
+    .forEach(
+        q=>{
+
+            const selected =
+                document.querySelector(
+                    'input[name="'+q+'"]:checked'
+                );
+
+
+            if(
+                selected &&
+                selected.value === answers[q]
+            ){
+
+                score++;
+
+            }
+
+        }
+    );
+
+
+    const percentage =
+        (score/5)*100;
+
+
+    document
+        .getElementById(
+            "quizResult"
+        )
+        .innerHTML =
+
+        `
+        Score:
+        <strong>
+        ${score}/5
+        </strong>
+        <br>
+        Percentage:
+        <strong>
+        ${percentage}%
+        </strong>
+        `;
+
+}
+
+
+/* =========================================================
+   RESIZE CANVAS
+========================================================= */
+
+window.addEventListener(
+    "resize",
+    function(){
+
+        /* Canvas dimensions will be
+           refreshed on next animation frame */
+
+    }
+);
+
+</script>
+
+</body>
+</html>
