@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Electric Motor Drives Interactive Simulator</title>
+<style>
+  :root {
+    --bg: #0f1420;
+    --panel: #161d2e;
+    --wire: #4a5570;
+    --wire-on: #38bdf8;
+    --node: #e2e8f0;
+    --accent: #f59e0b;
+    --accent2: #22c55e;
+    --text: #e2e8f0;
+    --muted: #8b93a7;
+    --switch-on: #22c55e;
+    --switch-off: #ef4444;
+    --volt: #38bdf8;
+    --curr: #f59e0b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 20px;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 1.3rem; margin: 0 0 4px 0; font-weight: 600; }
+  .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 16px; }
+  
+  /* Tabs */
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .tab-btn {
+    background: var(--panel);
+    color: var(--muted);
+    border: 1px solid #232b40;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.15s ease;
+  }
+  .tab-btn:hover { background: #1f2740; color: var(--text); }
+  .tab-btn.active { background: var(--accent); color: #1a1200; border-color: var(--accent); }
+
+  .panel { background: var(--panel); border-radius: 14px; padding: 16px; margin-bottom: 14px; border: 1px solid #232b40; }
+  .controls { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-bottom: 12px; }
+  button {
+    background: #1f2740;
+    color: var(--text);
+    border: 1px solid #2e3a5c;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: background .15s;
+  }
+  button:hover { background: #2a3454; }
+  button.active { background: var(--accent); color: #1a1200; border-color: var(--accent); }
+  
+  .ctrl-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--muted); }
+  input[type=range] { width: 130px; accent-color: var(--accent); }
+  .ctrl-item .readout { color: var(--text); font-weight: 700; min-width: 52px; display: inline-block; }
+  
+  .phase-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: .3px;
+    background: rgba(56, 189, 248, 0.15);
+    color: var(--volt);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+  }
+
+  .readout-strip {
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #232b40;
+    font-size: 0.85rem;
+  }
+  .readout-strip .item { display: flex; flex-direction: column; gap: 2px; }
+  .readout-strip .item .k { color: var(--muted); font-size: 0.75rem; }
+  .readout-strip .item .v { font-weight: 700; font-size: 1rem; }
+  
+  svg { width: 100%; height: auto; display: block; }
+  .lbl { font-size: 13px; fill: var(--text); font-weight: 600; }
+  .lbl-sub { font-size: 11px; fill: var(--muted); }
+  .val { font-size: 12px; fill: var(--wire-on); font-weight: 700; }
+  
+  .explain { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
+  .explain .box { background: #111827; border-radius: 10px; padding: 12px 14px; border: 1px solid #232b40; font-size: 0.85rem; line-height: 1.5; }
+  .explain .box h3 { margin: 0 0 6px 0; font-size: 0.85rem; color: var(--accent); }
+  .gtitle { font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .gtitle .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+  
+  @media (max-width: 640px) { .explain { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Electric Motor Drives Laboratory</h1>
+  <div class="sub">Interactive visualization of power electronics, PWM topologies, commutation, and sensor feedback loops</div>
+
+  <!-- Navigation Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('hbridge')">H-Bridge DC Drive</button>
+    <button class="tab-btn" onclick="switchTab('bldc')">BLDC 6-Step & ESC</button>
+    <button class="tab-btn" onclick="switchTab('induction')">Induction Motor V/f</button>
+    <button class="tab-btn" onclick="switchTab('servo')">Servo Cascade Loop</button>
+    <button class="tab-btn" onclick="switchTab('stepper')">Stepper Motor Drives</button>
+  </div>
+
+  <!-- Main View Container -->
+  <div id="tabContent"></div>
+</div>
+
+<script>
+// Global Controls
+let playing = true;
+let speed = 1;
+let animFrame = null;
+let lastTime = null;
+let globalTime = 0;
+
+// State Variables for Models
+let currentTab = 'hbridge';
+
+// Tab Specific Parameters
+const state = {
+  hbridge: { mode: 'FORWARD', duty: 0.6 },
+  bldc: { duty: 0.7, hallStep: 1 },
+  induction: { freq: 50, vfRatio: 1.0 },
+  servo: { targetPos: 180, kp: 0.8, kd: 0.2, pos: 0, vel: 0, torque: 0 },
+  stepper: { stepMode: 'FULL', speed: 10, currentStep: 0 }
+};
+
+function switchTab(tabKey) {
+  currentTab = tabKey;
+  document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+    btn.classList.toggle('active', ['hbridge','bldc','induction','servo','stepper'][idx] === tabKey);
+  });
+  renderTab();
+}
+
+function renderTab() {
+  const container = document.getElementById('tabContent');
+  if (animFrame) cancelAnimationFrame(animFrame);
+  lastTime = null;
+
+  switch (currentTab) {
+    case 'hbridge': renderHBridge(container); break;
+    case 'bldc': renderBLDC(container); break;
+    case 'induction': renderInduction(container); break;
+    case 'servo': renderServo(container); break;
+    case 'stepper': renderStepper(container); break;
+  }
+}
+
+/* ==========================================================================
+   1. H-BRIDGE CONVERTER FOR DC MOTOR DRIVES
+   ========================================================================== */
+function renderHBridge(c) {
+  c.innerHTML = `
+    <div class="panel">
+      <div class="controls">
+        <button id="playBtn" class="active">⏸ Pause</button>
+        <div class="ctrl-item">Mode
+          <button onclick="state.hbridge.mode='FORWARD'; renderTab();" class="${state.hbridge.mode==='FORWARD'?'active':''}">Forward</button>
+          <button onclick="state.hbridge.mode='REVERSE'; renderTab();" class="${state.hbridge.mode==='REVERSE'?'active':''}">Reverse</button>
+          <button onclick="state.hbridge.mode='BRAKE'; renderTab();" class="${state.hbridge.mode==='BRAKE'?'active':''}">Brake</button>
+        </div>
+        <div class="ctrl-item">PWM Duty<input type="range" id="hbDuty" min="0" max="1" step="0.05" value="${state.hbridge.duty}"><span class="readout" id="hbDutyRO">${Math.round(state.hbridge.duty*100)}%</span></div>
+        <span id="hbBadge" class="phase-badge">ACTIVE CONDUCTION</span>
+      </div>
+
+      <svg viewBox="0 0 860 260">
+        <!-- DC Rail -->
+        <line x1="50" y1="30" x2="810" y2="30" stroke="var(--wire)" stroke-width="3"/>
+        <text x="60" y="22" class="lbl">VDC (+48V)</text>
+        <line x1="50" y1="230" x2="810" y2="230" stroke="var(--wire)" stroke-width="3"/>
+        <text x="60" y="250" class="lbl">GND</text>
+
+        <!-- Switches Q1, Q2, Q3, Q4 -->
+        <!-- Q1 -->
+        <g id="q1">
+          <line x1="250" y1="30" x2="250" y2="70" stroke="var(--wire)" stroke-width="3"/>
+          <rect x="230" y="70" width="40" height="40" fill="var(--panel)" stroke="var(--wire)" stroke-width="2" rx="4"/>
+          <text x="250" y="94" text-anchor="middle" class="lbl">Q1</text>
+          <line x1="250" y1="110" x2="250" y2="130" stroke="var(--wire)" stroke-width="3"/>
+        </g>
+        <!-- Q2 -->
+        <g id="q2">
+          <line x1="250" y1="130" x2="250" y2="150" stroke="var(--wire)" stroke-width="3"/>
+          <rect x="230" y="150" width="40" height="40" fill="var(--panel)" stroke="var(--wire)" stroke-width="2" rx="4"/>
+          <text x="250" y="174" text-anchor="middle" class="lbl">Q2</text>
+          <line x1="250" y1="190" x2="250" y2="230" stroke="var(--wire)" stroke-width="3"/>
+        </g>
+        <!-- Q3 -->
+        <g id="q3">
+          <line x1="600" y1="30" x2="600" y2="70" stroke="var(--wire)" stroke-width="3"/>
+          <rect x="580" y="70" width="40" height="40" fill="var(--panel)" stroke="var(--wire)" stroke-width="2" rx="4"/>
+          <text x="600" y="94" text-anchor="middle" class="lbl">Q3</text>
+          <line x1="600" y1="110" x2="600" y2="130" stroke="var(--wire)" stroke-width="3"/>
+        </g>
+        <!-- Q4 -->
+        <g id="q4">
+          <line x1="600" y1="130" x2="600" y2="150" stroke="var(--wire)" stroke-width="3"/>
+          <rect x="580" y="150" width="40" height="40" fill="var(--panel)" stroke="var(--wire)" stroke-width="2" rx="4"/>
+          <text x="600" y="174" text-anchor="middle" class="lbl">Q4</text>
+          <line x1="600" y1="190" x2="600" y2="230" stroke="var(--wire)" stroke-width="3"/>
+        </g>
+
+        <!-- Motor Load -->
+        <line x1="250" y1="130" x2="380" y2="130" stroke="var(--wire)" stroke-width="3"/>
+        <line x1="480" y1="130" x2="600" y2="130" stroke="var(--wire)" stroke-width="3"/>
+        <circle cx="430" cy="130" r="35" fill="#1e293b" stroke="var(--volt)" stroke-width="3"/>
+        <text x="430" y="135" text-anchor="middle" class="lbl" style="font-size:16px;">DC Motor</text>
+        
+        <!-- Rotor visual indicator -->
+        <line id="rotor" x1="430" y1="130" x2="455" y2="130" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+
+      <div class="readout-strip">
+        <div class="item"><span class="k">Applied Voltage (Vavg)</span><span class="v" id="hbVavg">0 V</span></div>
+        <div class="item"><span class="k">Motor RPM</span><span class="v" id="hbRpm">0 RPM</span></div>
+        <div class="item"><span class="k">Active Quadrant</span><span class="v" id="hbQuad">Q1 (Forward Motoring)</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="gtitle"><span><span class="swatch" style="background:var(--volt);"></span>Motor Terminal Voltage (Va - Vb)</span></div>
+      <svg id="hbGraph" viewBox="0 0 860 100">
+        <line x1="40" y1="50" x2="830" y2="50" stroke="var(--wire)" stroke-width="1.5"/>
+        <polyline id="hbVline" points="" fill="none" stroke="var(--volt)" stroke-width="2.5"/>
+      </svg>
+    </div>
+
+    <div class="explain">
+      <div class="box">
+        3. <h3>H-Bridge Switching States</h3>
+        • <b>Forward Motoring:</b> Q1 (PWM) & Q4 (ON). Current flows Left-to-Right.<br>
+        • <b>Reverse Motoring:</b> Q3 (PWM) & Q2 (ON). Current flows Right-to-Left.<br>
+        • <b>Dynamic Braking:</b> Q2 & Q4 ON (or Q1 & Q3 ON). Short-circuits motor Back-EMF to decay kinetic energy rapidly.
+      </div>
+      <div class="box">
+        <h3>Quadrant Control & PWM</h3>
+        • Speed is proportional to the duty ratio ($V_{avg} = D \times V_{dc}$).<br>
+        • Fast decay vs slow decay modes dictate freewheeling paths through antiparallel body diodes during PWM OFF states.
+      </div>
+    </div>
+  `;
+
+  // Listeners
+  document.getElementById('hbDuty').addEventListener('input', e => {
+    state.hbridge.duty = parseFloat(e.target.value);
+    document.getElementById('hbDutyRO').textContent = Math.round(state.hbridge.duty * 100) + '%';
+  });
+
+  document.getElementById('playBtn').addEventListener('click', e => {
+    playing = !playing;
+    e.target.textContent = playing ? '⏸ Pause' : '▶ Play';
+  });
+
+  // Animation Loop
+  let angle = 0;
+  function animateHB(time) {
+    if (!lastTime) lastTime = time;
+    const dt = (time - lastTime) / 1000;
+    lastTime = time;
+
+    if (playing) {
+      let vMult = 0;
+      if (state.hbridge.mode === 'FORWARD') vMult = state.hbridge.duty;
+      if (state.hbridge.mode === 'REVERSE') vMult = -state.hbridge.duty;
+      if (state.hbridge.mode === 'BRAKE') vMult = 0;
+
+      const vAvg = vMult * 48;
+      const targetRpm = vMult * 3000;
+      angle += (targetRpm * 6 * dt); // 360 deg/sec at 60rpm
+
+      // Update Rotor
+      const rad = angle * Math.PI / 180;
+      const rx = 430 + 25 * Math.cos(rad);
+      const ry = 130 + 25 * Math.sin(rad);
+      document.getElementById('rotor').setAttribute('x2', rx);
+      document.getElementById('rotor').setAttribute('y2', ry);
+
+      // Readouts
+      document.getElementById('hbVavg').textContent = vAvg.toFixed(1) + ' V';
+      document.getElementById('hbRpm').textContent = Math.round(targetRpm) + ' RPM';
+      document.getElementById('hbQuad').textContent = state.hbridge.mode === 'FORWARD' ? 'Q1 (Forward Drive)' : state.hbridge.mode === 'REVERSE' ? 'Q3 (Reverse Drive)' : 'Braking (Zero Voltage)';
+
+      // Draw Voltage Waveform
+      const pts = [];
+      const steps = 200;
+      for (let i = 0; i <= steps; i++) {
+        const x = 40 + (i / steps) * 790;
+        const phase = (i / steps * 10 + time / 200) % 1;
+        let v = 0;
+        if (state.hbridge.mode === 'FORWARD') v = phase < state.hbridge.duty ? 48 : 0;
+        else if (state.hbridge.mode === 'REVERSE') v = phase < state.hbridge.duty ? -48 : 0;
+        const y = 50 - (v / 48) * 35;
+        pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+      }
+      document.getElementById('hbVline').setAttribute('points', pts.join(' '));
+    }
+    animFrame = requestAnimationFrame(animateHB);
+  }
+  animFrame = requestAnimationFrame(animateHB);
+}
+
+/* ==========================================================================
+   2. BLDC MOTOR DRIVE – ESC & SIX-STEP COMMUTATION
+   ========================================================================== */
+function renderBLDC(c) {
+  c.innerHTML = `
+    <div class="panel">
+      <div class="controls">
+        <button id="playBtn" class="active">⏸ Pause</button>
+        <div class="ctrl-item">Throttle / Duty<input type="range" id="bldcDuty" min="0.1" max="1" step="0.05" value="${state.bldc.duty}"><span class="readout" id="bldcDutyRO">${Math.round(state.bldc.duty*100)}%</span></div>
+        <span id="bldcBadge" class="phase-badge">STEP 1: Phase A+ B-</span>
+      </div>
+
+      <svg viewBox="0 0 860 260">
+        <!-- Stator Coils -->
+        <g transform="translate(430, 130)">
+          <!-- Phase A Coil (Top) -->
+          <circle id="coilA" cx="0" cy="-75" r="22" fill="var(--panel)" stroke="var(--wire)" stroke-width="3"/>
+          <text x="0" y="-70" text-anchor="middle" class="lbl">A</text>
+          
+          <!-- Phase B Coil (Bottom Right) -->
+          <circle id="coilB" cx="65" cy="37" r="22" fill="var(--panel)" stroke="var(--wire)" stroke-width="3"/>
+          <text x="65" y="42" text-anchor="middle" class="lbl">B</text>
+
+          <!-- Phase C Coil (Bottom Left) -->
+          <circle id="coilC" cx="-65" cy="37" r="22" fill="var(--panel)" stroke="var(--wire)" stroke-width="3"/>
+          <text x="-65" y="42" text-anchor="middle" class="lbl">C</text>
+
+          <!-- Permanent Magnet Rotor -->
+          <g id="bldcRotor">
+            <rect x="-12" y="-55" width="24" height="55" fill="#ef4444" rx="3"/><text x="0" y="-30" text-anchor="middle" fill="#fff" font-weight="700" font-size="12">N</text>
+            <rect x="-12" y="0" width="24" height="55" fill="#38bdf8" rx="3"/><text x="0" y="28" text-anchor="middle" fill="#fff" font-weight="700" font-size="12">S</text>
+          </g>
+
+          <!-- Hall Sensors -->
+          <rect id="hallA" x="-6" y="-105" width="12" height="12" fill="var(--muted)"/>
+          <rect id="hallB" x="85" y="45" width="12" height="12" fill="var(--muted)"/>
+          <rect id="hallC" x="-97" y="45" width="12" height="12" fill="var(--muted)"/>
+        </g>
+      </svg>
+
+      <div class="readout-strip">
+        <div class="item"><span class="k">Hall Pattern [H1 H2 H3]</span><span class="v" id="hallCode">1 0 1</span></div>
+        <div class="item"><span class="k">Active Inverter Switches</span><span class="v" id="swCode">Q1 (A High), Q4 (B Low)</span></div>
+        <div class="item"><span class="k">Floating Phase Back-EMF</span><span class="v" id="bemfPhase">Phase C (Zero Crossing)</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="gtitle"><span><span class="swatch" style="background:var(--volt);"></span>Six-Step Commutation Logic Table</span></div>
+      <div style="font-size:0.8rem; overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; text-align:center;">
+          <tr style="border-bottom:1px solid #232b40; color:var(--muted);">
+            <th>Step</th><th>Hall [A B C]</th><th>Phase A</th><th>Phase B</th><th>Phase C</th>
+          </tr>
+          <tr id="row1"><td>1</td><td>1 0 1</td><td style="color:var(--switch-on)">+Vdc (PWM)</td><td style="color:var(--switch-off)">GND</td><td>NC (BEMF)</td></tr>
+          <tr id="row2"><td>2</td><td>1 0 0</td><td style="color:var(--switch-on)">+Vdc (PWM)</td><td>NC (BEMF)</td><td style="color:var(--switch-off)">GND</td></tr>
+          <tr id="row3"><td>3</td><td>1 1 0</td><td>NC (BEMF)</td><td style="color:var(--switch-on)">+Vdc (PWM)</td><td style="color:var(--switch-off)">GND</td></tr>
+          <tr id="row4"><td>4</td><td>0 1 0</td><td style="color:var(--switch-off)">GND</td><td style="color:var(--switch-on)">+Vdc (PWM)</td><td>NC (BEMF)</td></tr>
+          <tr id="row5"><td>5</td><td>0 1 1</td><td style="color:var(--switch-off)">GND</td><td>NC (BEMF)</td><td style="color:var(--switch-on)">+Vdc (PWM)</td></tr>
+          <tr id="row6"><td>6</td><td>0 0 1</td><td>NC (BEMF)</td><td style="color:var(--switch-off)">GND</td><td style="color:var(--switch-on)">+Vdc (PWM)</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="explain">
+      <div class="box">
+        <h3>Six-Step Trapezoidal Commutation</h3>
+        • At any step, <b>two phases conduct current</b> while the third floats.<br>
+        • Electronic Speed Controllers (ESCs) sequentially trigger 3-phase inverter switches using Hall sensor state decoding.
+      </div>
+      <div class="box">
+        <h3>Sensorless Back-EMF Sensing</h3>
+        • Sensorless ESCs monitor the <b>floating phase</b> for the Back-EMF zero-crossing point to calculate exact 30° phase shift timing for the next step.
+      </div>
+    </div>
+  `;
+
+  document.getElementById('bldcDuty').addEventListener('input', e => {
+    state.bldc.duty = parseFloat(e.target.value);
+    document.getElementById('bldcDutyRO').textContent = Math.round(state.bldc.duty * 100) + '%';
+  });
+
+  document.getElementById('playBtn').addEventListener('click', e => {
+    playing = !playing;
+    e.target.textContent = playing ? '⏸ Pause' : '▶ Play';
+  });
+
+  let rot = 0;
+  function animateBLDC(time) {
+    if (!lastTime) lastTime = time;
+    const dt = (time - lastTime) / 1000;
+    lastTime = time;
+
+    if (playing) {
+      const speedRpm = state.bldc.duty * 2400;
+      rot = (rot + speedRpm * 6 * dt) % 360;
+
+      // Update Rotor transform
+      document.getElementById('bldcRotor').setAttribute('transform', `rotate(${rot})`);
+
+      // Determine 60-degree commutation sector (1 to 6)
+      const sector = Math.floor(rot / 60) + 1;
+      state.bldc.hallStep = sector;
+
+      // Reset Coils
+      const cA = document.getElementById('coilA');
+      const cB = document.getElementById('coilB');
+      const cC = document.getElementById('coilC');
+      cA.style.stroke = 'var(--wire)'; cB.style.stroke = 'var(--wire)'; cC.style.stroke = 'var(--wire)';
+
+      // Highlight Active Step
+      for(let i=1; i<=6; i++) {
+        document.getElementById(`row${i}`).style.background = (i === sector) ? 'rgba(56, 189, 248, 0.2)' : 'transparent';
+      }
+
+      // Phase Conduction Highlighting
+      if (sector === 1) { cA.style.stroke = 'var(--switch-on)'; cB.style.stroke = 'var(--switch-off)'; }
+      else if (sector === 2) { cA.style.stroke = 'var(--switch-on)'; cC.style.stroke = 'var(--switch-off)'; }
+      else if (sector === 3) { cB.style.stroke = 'var(--switch-on)'; cC.style.stroke = 'var(--switch-off)'; }
+      else if (sector === 4) { cB.style.stroke = 'var(--switch-on)'; cA.style.stroke = 'var(--switch-off)'; }
+      else if (sector === 5) { cC.style.stroke = 'var(--switch-on)'; cA.style.stroke = 'var(--switch-off)'; }
+      else if (sector === 6) { cC.style.stroke = 'var(--switch-on)'; cB.style.stroke = 'var(--switch-off)'; }
+
+      document.getElementById('bldcBadge').textContent = `SECTOR ${sector} COMMUTATION`;
+    }
+    animFrame = requestAnimationFrame(animateBLDC);
+  }
+  animFrame = requestAnimationFrame(animateBLDC);
+}
+
+/* ==========================================================================
+   3. INDUCTION MOTOR DRIVES – INVERTER & V/f CONTROL
+   ========================================================================== */
+function renderInduction(c) {
+  c.innerHTML = `
+    <div class="panel">
+      <div class="controls">
+        <button id="playBtn" class="active">⏸ Pause</button>
+        <div class="ctrl-item">Stator Frequency (f)<input type="range" id="indFreq" min="10" max="100" step="1" value="${state.induction.freq}"><span class="readout" id="indFreqRO">${state.induction.freq} Hz</span></div>
+        <span class="phase-badge">CONSTANT V/f PROFILE</span>
+      </div>
+
+      <svg viewBox="0 0 860 220">
+        <g transform="translate(430, 110)">
+          <!-- Rotating Stator Magnetic Field (RMF) -->
+          <circle r="80" fill="none" stroke="var(--wire)" stroke-width="3" stroke-dasharray="6,6"/>
+          <g id="rmfLine">
+            <line x1="0" y1="0" x2="0" y2="-75" stroke="var(--volt)" stroke-width="4" marker-end="url(#arrow)"/>
+            <text x="5" y="-60" fill="var(--volt)" class="lbl">RMF ($N_s$)</text>
+          </g>
+
+          <!-- Squirrel Cage Rotor -->
+          <circle r="50" fill="#1e293b" stroke="var(--accent)" stroke-width="4"/>
+          <g id="rotorRmf">
+            <line x1="0" y1="0" x2="0" y2="-45" stroke="var(--accent2)" stroke-width="3"/>
+            <text x="5" y="-30" fill="var(--accent2)" class="lbl">Rotor ($N_r$)</text>
+          </g>
+        </g>
+      </svg>
+
+      <div class="readout-strip">
+        <div class="item"><span class="k">Stator Applied Voltage (V)</span><span class="v" id="indVolt">400 V</span></div>
+        <div class="item"><span class="k">Synchronous Speed (Ns)</span><span class="v" id="indNs">1500 RPM</span></div>
+        <div class="item"><span class="k">Rotor Speed (Nr @ 3% Slip)</span><span class="v" id="indNr">1455 RPM</span></div>
+        <div class="item"><span class="k">Slip Frequency ($f_{slip}$)</span><span class="v" id="indSlip">1.5 Hz</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="gtitle"><span><span class="swatch" style="background:var(--volt);"></span>V/f Control Curve & 3-Phase Inverter Output</span></div>
+      <svg viewBox="0 0 860 100">
+        <polyline id="vfWave" points="" fill="none" stroke="var(--volt)" stroke-width="2.5"/>
+      </svg>
+    </div>
+
+    <div class="explain">
+      <div class="box">
+        <h3>Scalar V/f Principle</h3>
+        • To maintain maximum core flux without magnetic saturation, voltage must scale linearly with frequency: $V/f = \text{Constant}$.<br>
+        • Voltage ramps linearly up to base frequency ($50\text{ Hz}$), then caps at rated $V_{max}$ (Field Weakening region).
+      </div>
+      <div class="box">
+        <h3>Slip & Torque Generation</h3>
+        • Induction motors require **Slip** ($S = \frac{N_s - N_r}{N_s}$) to induce current in the squirrel-cage rotor bars. Zero slip produces zero torque.
+      </div>
+    </div>
+  `;
+
+  document.getElementById('indFreq').addEventListener('input', e => {
+    state.induction.freq = parseInt(e.target.value);
+    document.getElementById('indFreqRO').textContent = state.induction.freq + ' Hz';
+  });
+
+  document.getElementById('playBtn').addEventListener('click', e => {
+    playing = !playing;
+    e.target.textContent = playing ? '⏸ Pause' : '▶ Play';
+  });
+
+  let syncAngle = 0;
+  let rotorAngle = 0;
+
+  function animateInduction(time) {
+    if (!lastTime) lastTime = time;
+    const dt = (time - lastTime) / 1000;
+    lastTime = time;
+
+    if (playing) {
+      const f = state.induction.freq;
+      // V/f curve calculation
+      const baseF = 50;
+      const ratedV = 400;
+      const v = f <= baseF ? (f / baseF) * ratedV : ratedV;
+
+      const ns = (120 * f) / 4; // 4-pole motor
+      const slip = 0.03;
+      const nr = ns * (1 - slip);
+
+      syncAngle = (syncAngle + ns * 6 * dt) % 360;
+      rotorAngle = (rotorAngle + nr * 6 * dt) % 360;
+
+      document.getElementById('rmfLine').setAttribute('transform', `rotate(${syncAngle})`);
+      document.getElementById('rotorRmf').setAttribute('transform', `rotate(${rotorAngle})`);
+
+      document.getElementById('indVolt').textContent = Math.round(v) + ' V';
+      document.getElementById('indNs').textContent = Math.round(ns) + ' RPM';
+      document.getElementById('indNr').textContent = Math.round(nr) + ' RPM';
+      document.getElementById('indSlip').textContent = (f * slip).toFixed(1) + ' Hz';
+
+      // Plot Voltage Waveform
+      const pts = [];
+      const steps = 200;
+      for (let i = 0; i <= steps; i++) {
+        const x = 40 + (i / steps) * 790;
+        const phase = (i / steps * (f / 10) + time / 200);
+        const y = 50 - Math.sin(phase) * (v / ratedV) * 35;
+        pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+      }
+      document.getElementById('vfWave').setAttribute('points', pts.join(' '));
+    }
+    animFrame = requestAnimationFrame(animateInduction);
+  }
+  animFrame = requestAnimationFrame(animateInduction);
+}
+
+/* ==========================================================================
+   4. SERVO MOTOR DRIVES – POSITION, TORQUE, AND SPEED CONTROL
+   ========================================================================== */
+function renderServo(c) {
+  c.innerHTML = `
+    <div class="panel">
+      <div class="controls">
+        <button id="playBtn" class="active">⏸ Pause</button>
+        <div class="ctrl-item">Target Position<input type="range" id="srvPos" min="0" max="360" step="5" value="${state.servo.targetPos}"><span class="readout" id="srvPosRO">${state.servo.targetPos}°</span></div>
+        <div class="ctrl-item">Kp Gain<input type="range" id="srvKp" min="0.1" max="2" step="0.1" value="${state.servo.kp}"><span class="readout" id="srvKpRO">${state.servo.kp}</span></div>
+      </div>
+
+      <svg viewBox="0 0 860 200">
+        <!-- Cascade Loop Diagram -->
+        <g transform="translate(30, 40)">
+          <!-- Position Loop -->
+          <rect x="0" y="20" width="120" height="60" fill="var(--panel)" stroke="var(--volt)" stroke-width="2" rx="6"/>
+          <text x="60" y="45" text-anchor="middle" class="lbl">Position Loop</text>
+          <text x="60" y="62" text-anchor="middle" class="lbl-sub">Encoder Feedback</text>
+
+          <line x1="120" y1="50" x2="170" y2="50" stroke="var(--wire)" stroke-width="2" marker-end="url(#arrow)"/>
+
+          <!-- Speed Loop -->
+          <rect x="170" y="20" width="120" height="60" fill="var(--panel)" stroke="var(--accent)" stroke-width="2" rx="6"/>
+          <text x="230" y="45" text-anchor="middle" class="lbl">Speed Loop</text>
+          <text x="230" y="62" text-anchor="middle" class="lbl-sub">PI Velocity Control</text>
+
+          <line x1="290" y1="50" x2="340" y2="50" stroke="var(--wire)" stroke-width="2"/>
+
+          <!-- Torque Loop -->
+          <rect x="340" y="20" width="120" height="60" fill="var(--panel)" stroke="var(--accent2)" stroke-width="2" rx="6"/>
+          <text x="400" y="45" text-anchor="middle" class="lbl">Torque Loop</text>
+          <text x="400" y="62" text-anchor="middle" class="lbl-sub">Current / Field (FOC)</text>
+        </g>
+
+        <!-- Mechanical Output Indicator -->
+        <g transform="translate(680, 100)">
+          <circle r="60" fill="#1e293b" stroke="var(--wire)" stroke-width="3"/>
+          <!-- Target marker -->
+          <line id="srvTgtLine" x1="0" y1="0" x2="0" y2="-55" stroke="var(--muted)" stroke-dasharray="3,3" stroke-width="2"/>
+          <!-- Actual Shaft -->
+          <line id="srvShaft" x1="0" y1="0" x2="0" y2="-55" stroke="var(--volt)" stroke-width="4"/>
+          <circle r="6" fill="var(--accent)"/>
+        </g>
+      </svg>
+
+      <div class="readout-strip">
+        <div class="item"><span class="k">Position Error ($\theta_e$)</span><span class="v" id="srvErr">0°</span></div>
+        <div class="item"><span class="k">Velocity Command ($N_{cmd}$)</span><span class="v" id="srvVelCmd">0 RPM</span></div>
+        <div class="item"><span class="k">Torque Command ($I_q$)</span><span class="v" id="srvIq">0.0 A</span></div>
+      </div>
+    </div>
+
+    <div class="explain">
+      <div class="box">
+        <h3>Cascade Control Loop Architecture</h3>
+        • **Outer Loop (Position):** Low bandwidth, processes high-resolution optical/magnetic encoder data.<br>
+        • **Middle Loop (Speed):** Medium bandwidth, smooths velocity profiles.<br>
+        • **Inner Loop (Torque/Current):** Ultra-high bandwidth ($>10\text{ kHz}$), directly regulates phase currents using Field Oriented Control (FOC).
+      </div>
+      <div class="box">
+        <h3>Encoder Feedback Integration</h3>
+        • High line-count Quadrature Encoders or Absolute Encoders deliver exact rotor angle $\theta_r$ needed for transformations ($d-q$ axis frame).
+      </div>
+    </div>
+  `;
+
+  document.getElementById('srvPos').addEventListener('input', e => {
+    state.servo.targetPos = parseFloat(e.target.value);
+    document.getElementById('srvPosRO').textContent = state.servo.targetPos + '°';
+  });
+  document.getElementById('srvKp').addEventListener('input', e => {
+    state.servo.kp = parseFloat(e.target.value);
+    document.getElementById('srvKpRO').textContent = state.servo.kp;
+  });
+
+  document.getElementById('playBtn').addEventListener('click', e => {
+    playing = !playing;
+    e.target.textContent = playing ? '⏸ Pause' : '▶ Play';
+  });
+
+  function animateServo(time) {
+    if (!lastTime) lastTime = time;
+    const dt = (time - lastTime) / 1000;
+    lastTime = time;
+
+    if (playing) {
+      // Closed Loop Position Differential Equation Simulation
+      const err = state.servo.targetPos - state.servo.pos;
+      const pCmd = err * state.servo.kp;
+      
+      // Speed and acceleration limits
+      const accel = (pCmd - state.servo.vel) * 10;
+      state.servo.vel += accel * dt;
+      state.servo.pos += state.servo.vel * dt;
+
+      // Visual Updates
+      document.getElementById('srvTgtLine').setAttribute('transform', `rotate(${state.servo.targetPos})`);
+      document.getElementById('srvShaft').setAttribute('transform', `rotate(${state.servo.pos})`);
+
+      document.getElementById('srvErr').textContent = err.toFixed(1) + '°';
+      document.getElementById('srvVelCmd').textContent = Math.round(state.servo.vel * 10) + ' RPM';
+      document.getElementById('srvIq').textContent = (err * 0.05).toFixed(2) + ' A';
+    }
+    animFrame = requestAnimationFrame(animateServo);
+  }
+  animFrame = requestAnimationFrame(animateServo);
+}
+
+/* ==========================================================================
+   5. STEPPER MOTOR DRIVES – FULL, HALF, & MICROSTEPPING
+   ========================================================================== */
+function renderStepper(c) {
+  c.innerHTML = `
+    <div class="panel">
+      <div class="controls">
+        <button id="playBtn" class="active">⏸ Pause</button>
+        <div class="ctrl-item">Stepping Mode
+          <button onclick="state.stepper.stepMode='FULL'; renderTab();" class="${state.stepper.stepMode==='FULL'?'active':''}">Full Step</button>
+          <button onclick="state.stepper.stepMode='HALF'; renderTab();" class="${state.stepper.stepMode==='HALF'?'active':''}">Half Step</button>
+          <button onclick="state.stepper.stepMode='MICRO'; renderTab();" class="${state.stepper.stepMode==='MICRO'?'active':''}">Microstepping</button>
+        </div>
+      </div>
+
+      <svg viewBox="0 0 860 220">
+        <g transform="translate(430, 110)">
+          <!-- Phase A Coil Pair -->
+          <circle id="stpA1" cx="0" cy="-75" r="18" fill="var(--panel)" stroke="var(--wire)" stroke-width="3"/>
+          <circle id="stpA2" cx="0" cy="75" r="18" fill="var(--panel)" stroke="var(--wire)" stroke-width="3"/>
+          <text x="0" y="-70" text-anchor="middle" class="lbl">A+</text>
+          <text x="0" y="80" text-anchor="middle" class="lbl">A-</text>
+
+          <!-- Phase B Coil Pair -->
+          <circle id="stpB1" cx="75" cy="0" r="18" fill="var(--panel)" stroke="var(--wire)" stroke-width="3"/>
+          <circle id="stpB2" cx="-75" cy="0" r="18" fill="var(--panel)" stroke="var(--wire)" stroke-width="3"/>
+          <text x="75" y="5" text-anchor="middle" class="lbl">B+</text>
+          <text x="-75" y="5" text-anchor="middle" class="lbl">B-</text>
+
+          <!-- Toothed/Permanent Magnet Rotor -->
+          <g id="stpRotor">
+            <line x1="0" y1="-50" x2="0" y2="50" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"/>
+            <circle r="12" fill="var(--volt)"/>
+          </g>
+        </g>
+      </svg>
+
+      <div class="readout-strip">
+        <div class="item"><span class="k">Phase A Current</span><span class="v" id="stpIa">1.00 A</span></div>
+        <div class="item"><span class="k">Phase B Current</span><span class="v" id="stpIb">0.00 A</span></div>
+        <div class="item"><span class="k">Step Resolution</span><span class="v" id="stpRes">1.8° / Step</span></div>
+      </div>
+    </div>
+
+    <div class="explain">
+      <div class="box">
+        <h3>Excitation Schemes</h3>
+        • **Full Step:** 2 phases ON simultaneously ($45^\circ$ alignment angles). High torque, rough vibration.<br>
+        • **Half Step:** Alternates 1-phase and 2-phase excitation for double positional resolution.<br>
+        • **Microstepping:** Drives phases with sine/cosine PWM currents for ultra-smooth motion.
+      </div>
+      <div class="box">
+        <h3>Resonance & Detent Torque</h3>
+        • Chopper drives (constant current PWM) maintain torque at high step speeds by overcoming winding inductance $L/R$ time constants.
+      </div>
+    </div>
+  `;
+
+  document.getElementById('playBtn').addEventListener('click', e => {
+    playing = !playing;
+    e.target.textContent = playing ? '⏸ Pause' : '▶ Play';
+  });
+
+  let stpAngle = 0;
+  function animateStepper(time) {
+    if (!lastTime) lastTime = time;
+    const dt = (time - lastTime) / 1000;
+    lastTime = time;
+
+    if (playing) {
+      stpAngle = (stpAngle + 90 * dt) % 360;
+
+      let ia = 0, ib = 0;
+      const rad = stpAngle * Math.PI / 180;
+
+      if (state.stepper.stepMode === 'MICRO') {
+        ia = Math.cos(rad);
+        ib = Math.sin(rad);
+        document.getElementById('stpRes').textContent = '0.1125° (1/16 Microstep)';
+      } else if (state.stepper.stepMode === 'FULL') {
+        ia = Math.cos(rad) >= 0 ? 1 : -1;
+        ib = Math.sin(rad) >= 0 ? 1 : -1;
+        document.getElementById('stpRes').textContent = '1.8° / Full Step';
+      } else { // HALF
+        ia = Math.round(Math.cos(rad));
+        ib = Math.round(Math.sin(rad));
+        document.getElementById('stpRes').textContent = '0.9° / Half Step';
+      }
+
+      document.getElementById('stpRotor').setAttribute('transform', `rotate(${stpAngle})`);
+      document.getElementById('stpIa').textContent = ia.toFixed(2) + ' A';
+      document.getElementById('stpIb').textContent = ib.toFixed(2) + ' A';
+    }
+    animFrame = requestAnimationFrame(animateStepper);
+  }
+  animFrame = requestAnimationFrame(animateStepper);
+}
+
+// Initial Load
+switchTab('hbridge');
+</script>
+</body>
+</html>

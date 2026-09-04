@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Converter Control & Testing Laboratory</title>
+<style>
+  :root {
+    --bg: #0f1420;
+    --panel: #161d2e;
+    --wire: #4a5570;
+    --wire-on: #38bdf8;
+    --node: #e2e8f0;
+    --accent: #f59e0b;
+    --accent2: #22c55e;
+    --danger: #ef4444;
+    --text: #e2e8f0;
+    --muted: #8b93a7;
+    --volt: #38bdf8;
+    --curr: #f59e0b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 20px;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 1.3rem; margin: 0 0 4px 0; font-weight: 600; }
+  .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 16px; }
+
+  /* Tab Navigation */
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .tab-btn {
+    background: var(--panel);
+    color: var(--muted);
+    border: 1px solid #232b40;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.15s ease;
+  }
+  .tab-btn:hover { background: #1f2740; color: var(--text); }
+  .tab-btn.active { background: var(--accent); color: #1a1200; border-color: var(--accent); }
+
+  .panel { background: var(--panel); border-radius: 14px; padding: 16px; margin-bottom: 14px; border: 1px solid #232b40; }
+  .controls { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-bottom: 12px; }
+  button {
+    background: #1f2740;
+    color: var(--text);
+    border: 1px solid #2e3a5c;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: background .15s;
+  }
+  button:hover { background: #2a3454; }
+  button.active { background: var(--accent); color: #1a1200; border-color: var(--accent); }
+
+  .ctrl-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--muted); }
+  input[type=range] { width: 130px; accent-color: var(--accent); }
+  .ctrl-item .readout { color: var(--text); font-weight: 700; min-width: 52px; display: inline-block; }
+
+  .phase-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: .3px;
+    background: rgba(56, 189, 248, 0.15);
+    color: var(--volt);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+  }
+
+  .readout-strip {
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #232b40;
+    font-size: 0.85rem;
+  }
+  .readout-strip .item { display: flex; flex-direction: column; gap: 2px; }
+  .readout-strip .item .k { color: var(--muted); font-size: 0.75rem; }
+  .readout-strip .item .v { font-weight: 700; font-size: 1rem; }
+
+  svg { width: 100%; height: auto; display: block; }
+  .lbl { font-size: 13px; fill: var(--text); font-weight: 600; }
+  .lbl-sub { font-size: 11px; fill: var(--muted); }
+
+  .explain { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
+  .explain .box { background: #111827; border-radius: 10px; padding: 12px 14px; border: 1px solid #232b40; font-size: 0.85rem; line-height: 1.5; }
+  .explain .box h3 { margin: 0 0 6px 0; font-size: 0.85rem; color: var(--accent); }
+  .gtitle { font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .gtitle .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+
+  @media (max-width: 640px) { .explain { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Converter Control & Testing Laboratory</h1>
+  <div class="sub">Interactive visualization of control loops, MCU execution, PIL simulation, loss measurement, thermal behavior, and reliability testing</div>
+
+  <!-- Navigation Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('controlMode')">Voltage vs Current Control</button>
+    <button class="tab-btn" onclick="switchTab('digitalControl')">Digital MCU Control</button>
+    <button class="tab-btn" onclick="switchTab('pilTesting')">PIL Testing</button>
+    <button class="tab-btn" onclick="switchTab('lossEfficiency')">Losses & Efficiency</button>
+    <button class="tab-btn" onclick="switchTab('thermalTesting')">Thermal & Heatsink</button>
+    <button class="tab-btn" onclick="switchTab('reliability')">Robotic Reliability</button>
+  </div>
+
+  <div id="tabContent"></div>
+</div>
+
+<script>
+let playing = true;
+let animFrame = null;
+let lastTime = null;
+let currentTab = 'controlMode';
+
+const state = {
+  controlMode: { type: 'CMC', kp: 1.2, ki: 0.5, loadStep: false },
+  digitalControl: { freq: 50, resolution: 10, delay: 1 },
+  pilTesting: { mode: 'REALTIME', latency: 20, jitter: 5 },
+  lossEfficiency: { fsw: 100, rdsOn: 0.05, traceL: 10 },
+  thermalTesting: { ambient: 25, rthJC: 0.8, rthHA: 2.5, power: 20 },
+  reliability: { tempCycles: 500, vibrationG: 5, failureRate: 0.02 }
+};
+
+function switchTab(tabKey) {
+  currentTab = tabKey;
+  document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+    btn.classList.toggle('active', ['controlMode','digitalControl','pilTesting','lossEfficiency','thermalTesting','reliability'][idx] === tabKey);
+  });
+  renderTab();
+}
+
+function renderTab() {
+  const container = document.getElementById('tabContent');
+  if (animFrame) cancelAnimationFrame(animFrame);
+  lastTime = null;
+
+  switch (currentTab) {
+    case 'controlMode': renderControlMode(container); break;
+    case 'digitalControl': renderDigitalControl(container); break;
+    case 'pilTesting': renderPILTesting(container); break;
+    case 'lossEfficiency': renderLossEfficiency(container); break;
+    case 'thermalTesting': renderThermalTesting(container); break;
+    case 'reliability': renderReliability(container); break;
+  }
+}
+
+/* ==========================================================================
+   1. CONVERTER CONTROL TECHNIQUES (VMC vs CMC)
+   ========================================================================== */
+function renderControlMode(c) {
+  c.innerHTML = `
+    <div class="panel">
+      <div class="controls">
+        <button id="playBtn" class="active">⏸ Pause</button>
+        <div class="ctrl-item">Topology
+          <button onclick="state.controlMode.type='VMC'; renderTab();" class="${state.controlMode.type==='VMC'?'active':''}">Voltage-Mode (VMC)</button>
+          <button onclick="state.controlMode.type='CMC'; renderTab();" class="${state.controlMode.type==='CMC'?'active':''}">Current-Mode (CMC)</button>
+        </div>
+        <div class="ctrl-item">Kp Gain<input type="range" id="cmKp" min="0.1" max="3" step="0.1" value="${state.controlMode.kp}"><span class="readout" id="cmKpRO">${state.controlMode.kp}</span></div>
+        <button onclick="state.controlMode.loadStep = !state.controlMode.loadStep;" class="${state.controlMode.loadStep?'active':''}">Trigger Load Step</button>
+        <span class="phase-badge">${state.controlMode.type === 'CMC' ? 'INNER CURRENT LOOP ACTIVE' : 'SINGLE VOLTAGE LOOP'}</span>
+      </div>
+
+      <svg viewBox="0 0 860 180">
+        <!-- Control Diagram -->
+        <g transform="translate(30, 20)">
+          <!-- Ref Sum -->
+          <circle cx="40" cy="70" r="15" fill="var(--panel)" stroke="var(--volt)" stroke-width="2"/>
+          <text x="40" y="74" text-anchor="middle" class="lbl">∑</text>
+          
+          <line x1="55" y1="70" x2="100" y2="70" stroke="var(--wire)" stroke-width="2" marker-end="url(#arrow)"/>
+          
+          <!-- PID Controller -->
+          <rect x="100" y="45" width="100" height="50" fill="var(--panel)" stroke="var(--volt)" stroke-width="2" rx="6"/>
+          <text x="150" y="74" text-anchor="middle" class="lbl">PID (Voltage)</text>
+
+          <line x1="200" y1="70" x2="260" y2="70" stroke="var(--wire)" stroke-width="2"/>
+
+          ${state.controlMode.type === 'CMC' ? `
+            <!-- Inner Current Loop -->
+            <rect x="260" y="45" width="120" height="50" fill="var(--panel)" stroke="var(--curr)" stroke-width="2" rx="6"/>
+            <text x="320" y="68" text-anchor="middle" class="lbl">Current Comp</text>
+            <text x="320" y="84" text-anchor="middle" class="lbl-sub">+ Peak Ramp</text>
+            <line x1="380" y1="70" x2="440" y2="70" stroke="var(--wire)" stroke-width="2"/>
+          ` : `
+            <!-- Direct Modulator -->
+            <line x1="200" y1="70" x2="440" y2="70" stroke="var(--wire)" stroke-width="2"/>
+          `}
+
+          <!-- PWM Modulator & Converter Power Stage -->
+          <rect x="440" y="45" width="130" height="50" fill="var(--panel)" stroke="var(--accent2)" stroke-width="2" rx="6"/>
+          <text x="505" y="68" text-anchor="middle" class="lbl">PWM / Power Stage</text>
+          <text x="505" y="84" text-anchor="middle" class="lbl-sub">Buck Converter</text>
+
+          <line x1="570" y1="70" x2="680" y2="70" stroke="var(--wire)" stroke-width="2"/>
+          <text x="690" y="74" class="lbl">Vout</text>
+
+          <!-- Feedback line -->
+          <path d="M 630 70 L 630 140 L 40 140 L 40 85" fill="none" stroke="var(--wire)" stroke-width="2" stroke-dasharray="4,4"/>
+        </g>
+      </svg>
+
+      <div class="readout-strip">
+        <div class="item"><span class="k">Transient Overshoot</span><span class="v" id="cmOvershoot">2.1%</span></div>
+        <div class="item"><span class="k">Settling Time ($t_s$)</span><span class="v" id="cmSettling">120 µs</span></div>
+        <div class="item"><span class="k">Audio Susceptibility</span><span class="v" id="cmAudio">-38 dB</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="gtitle"><span><span class="swatch" style="background:var(--volt);"></span>Output Voltage Response ($V_{out}$)</span></div>
+      <svg viewBox="0 0 860 100">
+        <polyline id="cmWave" points="" fill="none" stroke="var(--volt)" stroke-width="2.5"/>
+      </svg>
+    </div>
+
+    <div class="explain">
+      <div class="box">
+        <h3>Voltage-Mode Control (VMC)</h3>
+        • Single feedback loop compares $V_{out}$ to a reference and drives a saw-tooth PWM modulator.<br>
+        • High output impedance; second-order double pole ($LC$) complicates loop compensation.
+      </div>
+      <div class="box">
+        <h3>Current-Mode Control (CMC)</h3>
+        • Inner loop senses inductor peak/average current, converting $L$ into a current source.<br>
+        • Reduces system to a 1st-order response, yielding inherently faster line rejection and cycle-by-cycle overcurrent protection.
+      </div>
+    </div>
+  `;
+
+  document.getElementById('cmKp').addEventListener('input', e => {
+    state.controlMode.kp = parseFloat(e.target.value);
+    document.getElementById('cmKpRO').textContent = state.controlMode.kp;
+  });
+
+  document.getElementById('playBtn').addEventListener('click', e => {
+    playing = !playing;
+    e.target.textContent = playing ? '⏸ Pause' : '▶ Play';
+  });
+
+  let simTime = 0;
+  function animateCM(time) {
+    if (!lastTime) lastTime = time;
+    const dt = (time - lastTime) / 1000;
+    lastTime = time;
+
+    if (playing) {
+      simTime += dt;
+      const pts = [];
+      const steps = 200;
+      const isCMC = state.controlMode.type === 'CMC';
+      const damping = isCMC ? 8.0 * state.controlMode.kp : 3.0 * state.controlMode.kp;
+      const freq = isCMC ? 20 : 35;
+
+      for (let i = 0; i <= steps; i++) {
+        const x = 40 + (i / steps) * 790;
+        const tVal = (i / steps);
+        let v = 5.0; // Nominal 5V
+
+        if (state.controlMode.loadStep && tVal > 0.3) {
+          const tRel = tVal - 0.3;
+          v = 5.0 - 0.6 * Math.exp(-damping * tRel) * Math.cos(freq * tRel);
+        }
+
+        const y = 50 - (v - 5.0) * 30;
+        pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+      }
+
+      document.getElementById('cmWave').setAttribute('points', pts.join(' '));
+      document.getElementById('cmOvershoot').textContent = isCMC ? '1.2%' : '8.4%';
+      document.getElementById('cmSettling').textContent = isCMC ? `${Math.round(150 / state.controlMode.kp)} µs` : `${Math.round(450 / state.controlMode.kp)} µs`;
+    }
+    animFrame = requestAnimationFrame(animateCM);
+  }
+  animFrame = requestAnimationFrame(animateCM);
+}
+
+/* ==========================================================================
+   2. DIGITAL CONTROL USING MICROCONTROLLERS
+   ========================================================================== */
+function renderDigitalControl(c) {
+  c.innerHTML = `
+    <div class="panel">
+      <div class="controls">
+        <button id="playBtn" class="active">⏸ Pause</button>
+        <div class="ctrl-item">Sampling Freq (fs)<input type="range" id="dcFreq" min="10" max="200" step="10" value="${state.digitalControl.freq}"><span class="readout" id="dcFreqRO">${state.digitalControl.freq} kHz</span></div>
+        <div class="ctrl-item">ADC Resolution<input type="range" id="dcRes" min="6" max="16" step="2" value="${state.digitalControl.resolution}"><span class="readout" id="dcResRO">${state.digitalControl.resolution} bits</span></div>
+        <span class="phase-badge">ePWM & ADC DISCRETE PIPELINE</span>
+      </div>
+
+      <svg viewBox="0 0 860 180">
+        <g transform="translate(30, 30)">
+          <!-- Analog Signal -->
+          <rect x="10" y="40" width="100" height="50" fill="var(--panel)" stroke="var(--volt)" stroke-width="2" rx="6"/>
+          <text x="60" y="68" text-anchor="middle" class="lbl">Analog Sensor</text>
+
+          <line x1="110" y1="65" x2="170" y2="65" stroke="var(--wire)" stroke-width="2"/>
+
+          <!-- ADC Quantizer -->
+          <rect x="170" y="40" width="110" height="50" fill="var(--panel)" stroke="var(--curr)" stroke-width="2" rx="6"/>
+          <text x="225" y="65" text-anchor="middle" class="lbl">ADC Sampling</text>
+          <text x="225" y="80" text-anchor="middle" class="lbl-sub">Quantization</text>
+
+          <line x1="280" y1="65" x2="340" y2="65" stroke="var(--wire)" stroke-width="2"/>
+
+          <!-- Core MCU / DSP ISR -->
+          <rect x="340" y="40" width="140" height="50" fill="var(--panel)" stroke="var(--accent)" stroke-width="2" rx="6"/>
+          <text x="410" y="65" text-anchor="middle" class="lbl">MCU Control ISR</text>
+          <text x="410" y="80" text-anchor="middle" class="lbl-sub">Fixed-Point PID</text>
+
+          <line x1="480" y1="65" x2="540" y2="65" stroke="var(--wire)" stroke-width="2"/>
+
+          <!-- ePWM Peripheral -->
+          <rect x="540" y="40" width="120" height="50" fill="var(--panel)" stroke="var(--accent2)" stroke-width="2" rx="6"/>
+          <text x="600" y="65" text-anchor="middle" class="lbl">ePWM Module</text>
+          <text x="600" y="80" text-anchor="middle" class="lbl-sub">High-Res Duty</text>
+        </g>
+      </svg>
+
+      <div class="readout-strip">
+        <div class="item"><span class="k">ADC Quantization Step (LSB)</span><span class="v" id="dcLsb">3.22 mV</span></div>
+        <div class="item"><span class="k">Computation Delay ($T_d$)</span><span class="v" id="dcDelay">10.0 µs</span></div>
+        <div class="item"><span class="k">Phase Margin Erosion</span><span class="v" id="dcPhaseLoss">-18.0°</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="gtitle"><span><span class="swatch" style="background:var(--accent);"></span>Continuous Analog vs Discretized Digital Control Output</span></div>
+      <svg viewBox="0 0 860 100">
+        <polyline id="dcAnaWave" points="" fill="none" stroke="var(--wire)" stroke-width="1.5" stroke-dasharray="4,4"/>
+        <polyline id="dcDigWave" points="" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+      </svg>
+    </div>
+
+    <div class="explain">
+      <div class="box">
+        <h3>Digital Control & Sampling Delays</h3>
+        • Discretization introduces a transport delay ($T_d = T_s / 2$) due to sample-and-hold (ZOH) plus ISR computation time.<br>
+        • Phase margin erodes linearly with frequency: $\Delta \phi = \omega \cdot T_d$.
+      </div>
+      <div class="box">
+        <h3>Quantization & Limit Cycling</h3>
+        • Finite ADC resolution and DPWM (Digital PWM) resolution cause **limit cycle oscillations** if DPWM resolution is lower than ADC resolution.
+      </div>
+    </div>
+  `;
+
+  document.getElementById('dcFreq').addEventListener('input', e => {
+    state.digitalControl.freq = parseInt(e.target.value);
+    document.getElementById('dcFreqRO').textContent = state.digitalControl.freq + ' kHz';
+  });
+  document.getElementById('dcRes').addEventListener('input', e => {
+    state.digitalControl.resolution = parseInt(e.target.value);
+    document.getElementById('dcResRO').textContent = state.digitalControl.resolution + ' bits';
+  });
+
+  document.getElementById('playBtn').addEventListener('click', e => {
+    playing = !playing;
+    e.target.textContent = playing ? '⏸ Pause' : '▶ Play';
+  });
+
+  function animateDC(time) {
+    if (!lastTime) lastTime = time;
+    lastTime = time;
+
+    if (playing) {
+      const fs = state.digitalControl.freq;
+      const bits = state.digitalControl.resolution;
+      const levels = Math.pow(2, bits);
+      const lsb = 3300 / levels; // 3.3V full scale in mV
+
+      document.getElementById('dcLsb').textContent = lsb.toFixed(2) + ' mV';
+      const delay = (1000 / fs) / 2;
+      document.getElementById('dcDelay').textContent = delay.toFixed(1) + ' µs';
+      document.getElementById('dcPhaseLoss').textContent = `-${(delay * 0.36).toFixed(1)}°`;
+
+      const ptsAna = [];
+      const ptsDig = [];
+      const steps = 200;
+
+      for (let i = 0; i <= steps; i++) {
+        const x = 40 + (i / steps) * 790;
+        const tVal = (i / steps * 0.05 + time / 1000);
+        const anaVal = Math.sin(2 * Math.PI * 10 * tVal);
+        const yAna = 50 - anaVal * 35;
+        ptsAna.push(`${x.toFixed(1)},${yAna.toFixed(1)}`);
+
+        // Discrete sample step
+        const sampleStep = Math.floor((i / steps) * (fs / 5));
+        const digVal = Math.sin(2 * Math.PI * 10 * (sampleStep * 5 / fs));
+        const quantVal = Math.round((digVal + 1) * (levels / 2)) / (levels / 2) - 1;
+        const yDig = 50 - quantVal * 35;
+        ptsDig.push(`${x.toFixed(1)},${yDig.toFixed(1)}`);
+      }
+
+      document.getElementById('dcAnaWave').setAttribute('points', ptsAna.join(' '));
+      document.getElementById('dcDigWave').setAttribute('points', ptsDig.join(' '));
+    }
+    animFrame = requestAnimationFrame(animateDC);
+  }
+  animFrame = requestAnimationFrame(animateDC);
+}
+
+/* ==========================================================================
+   3. PROCESSOR-IN-THE-LOOP (PIL) TESTING
+   ========================================================================== */
+function renderPILTesting(c) {
+  c.innerHTML = `
+    <div class="panel">
+      <div class="controls">
+        <button id="playBtn" class="active">⏸ Pause</button>
+        <div class="ctrl-item">Bus Latency<input type="range" id="pilLat" min="1" max="100" step="1" value="${state.pilTesting.latency}"><span class="readout" id="pilLatRO">${state.pilTesting.latency} ms</span></div>
+        <span class="phase-badge">EMBEDDED TARGET CONFIGURED (CAN / UART)</span>
+      </div>
+
+      <svg viewBox="0 0 860 180">
+        <!-- PIL Simulation Loop -->
+        <g transform="translate(40, 20)">
+          <!-- Host PC Plant Model -->
+          <rect x="20" y="30" width="220" height="90" fill="var(--panel)" stroke="var(--volt)" stroke-width="2" rx="8"/>
+          <text x="130" y="60" text-anchor="middle" class="lbl">Host Simulator (MATLAB/Simulink)</text>
+          <text x="130" y="80" text-anchor="middle" class="lbl-sub">Numerical Converter Plant Model</text>
+
+          <!-- Communication Bridge -->
+          <g id="pilBus">
+            <line x1="240" y1="60" x2="480" y2="60" stroke="var(--accent)" stroke-width="3" stroke-dasharray="6,6"/>
+            <text x="360" y="50" text-anchor="middle" class="lbl-sub">Serial / CAN Bus (PIL Link)</text>
+            <line x1="480" y1="90" x2="240" y2="90" stroke="var(--accent2)" stroke-width="3" stroke-dasharray="6,6"/>
+          </g>
+
+          <!-- Real Embedded Target MCU -->
+          <rect x="480" y="30" width="220" height="90" fill="var(--panel)" stroke="var(--accent2)" stroke-width="2" rx="8"/>
+          <text x="590" y="60" text-anchor="middle" class="lbl">Embedded Target Processor</text>
+          <text x="590" y="80" text-anchor="middle" class="lbl-sub">Compiled C-Code Control Algorithm</text>
+        </g>
+      </svg>
+
+      <div class="readout-strip">
+        <div class="item"><span class="k">Communication Overheads</span><span class="v" id="pilCommOverhead">12.4%</span></div>
+        <div class="item"><span class="k">PIL Execution Speedup</span><span class="v" id="pilSpeed">1.0x (Real-time)</span></div>
+        <div class="item"><span class="k">Algorithm Verification</span><span class="v" style="color:var(--accent2)">Passed (Match MIL)</span></div>
+      </div>
+    </div>
+
+    <div class="explain">
+      <div class="box">
+        <h3>Model-in-the-Loop vs Processor-in-the-Loop</h3>
+        • **MIL:** Control algorithm and converter plant run entirely on host computer inside simulation software.<br>
+        • **PIL:** Control code is compiled for the target hardware architecture (e.g., C2000, ARM Cortex-M) and runs on real silicon, exchanging state variables over serial/CAN.
+      </div>
+      <div class="box">
+        <h3>Why Perform PIL Testing?</h3>
+        • Verifies compiler optimization flags, fixed-point math precision, memory overflow, and target register interactions before connecting real power hardware.
+      </div>
+    </div>
+  `;
+
+  document.getElementById('pilLat').addEventListener('input', e => {
+    state.pilTesting.latency = parseInt(e.target.value);
+    document.getElementById('pilLatRO').textContent = state.pilTesting.latency + ' ms';
+  });
+
+  document.getElementById('playBtn').addEventListener('click', e => {
+    playing = !playing;
+    e.target.textContent = playing ? '⏸ Pause' : '▶ Play';
+  });
+
+  function animatePIL(time) {
+    if (!lastTime) lastTime = time;
+    lastTime = time;
+
+    if (playing) {
+      const lat = state.pilTesting.latency;
+      document.getElementById('pilCommOverhead').textContent = (lat * 0.45).toFixed(1) + '%';
+      document.getElementById('pilSpeed').textContent = lat > 40 ? '0.4x (Slower than Real-Time)' : '1.0x (Synchronized Real-Time)';
+    }
+    animFrame = requestAnimationFrame(animatePIL);
+  }
+  animFrame = requestAnimationFrame(animatePIL);
+}
+
+/* ==========================================================================
+   4. MEASUREMENT OF CONVERTER EFFICIENCY, RIPPLE, & SWITCHING LOSSES
+   ========================================================================== */
+function renderLossEfficiency(c) {
+  c.innerHTML = `
+    <div class="panel">
+      <div class="controls">
+        <button id="playBtn" class="active">⏸ Pause</button>
+        <div class="ctrl-item">Switching Freq (fsw)<input type="range" id="leFsw" min="20" max="500" step="10" value="${state.lossEfficiency.fsw}"><span class="readout" id="leFswRO">${state.lossEfficiency.fsw} kHz</span></div>
+        <div class="ctrl-item">MOSFET Rds(on)<input type="range" id="leRds" min="0.01" max="0.2" step="0.01" value="${state.lossEfficiency.rdsOn}"><span class="readout" id="leRdsRO">${Math.round(state.lossEfficiency.rdsOn*1000)} mΩ</span></div>
+      </div>
+
+      <svg viewBox="0 0 860 160">
+        <!-- Power Flow Diagram -->
+        <g transform="translate(40, 20)">
+          <!-- Pin -->
+          <rect x="20" y="40" width="90" height="50" fill="var(--panel)" stroke="var(--volt)" stroke-width="2" rx="4"/>
+          <text x="65" y="70" text-anchor="middle" class="lbl">Pin (100W)</text>
+
+          <line x1="110" y1="65" x2="180" y2="65" stroke="var(--wire)" stroke-width="3"/>
+
+          <!-- Losses Box -->
+          <rect x="180" y="30" width="300" height="70" fill="var(--panel)" stroke="var(--danger)" stroke-width="2" rx="6"/>
+          <text x="330" y="52" text-anchor="middle" class="lbl" style="fill:var(--danger)">Converter Total Loss</text>
+          <text x="240" y="80" text-anchor="middle" class="lbl-sub" id="pCondText">Pcond: 2.1W</text>
+          <text x="420" y="80" text-anchor="middle" class="lbl-sub" id="pSwText">Psw: 3.4W</text>
+
+          <line x1="480" y1="65" x2="550" y2="65" stroke="var(--wire)" stroke-width="3"/>
+
+          <!-- Pout -->
+          <rect x="550" y="40" width="90" height="50" fill="var(--panel)" stroke="var(--accent2)" stroke-width="2" rx="4"/>
+          <text x="595" y="70" text-anchor="middle" class="lbl" id="pOutText">Pout</text>
+        </g>
+      </svg>
+
+      <div class="readout-strip">
+        <div class="item"><span class="k">Conduction Loss ($P_{cond}$)</span><span class="v" id="lePcond">2.1 W</span></div>
+        <div class="item"><span class="k">Switching Loss ($P_{sw}$)</span><span class="v" id="lePsw">3.4 W</span></div>
+        <div class="item"><span class="k">Peak Voltage Ripple ($\Delta V_{out}$)</span><span class="v" id="leRipple">42 mV</span></div>
+        <div class="item"><span class="k">Overall Efficiency ($\eta$)</span><span class="v" style="color:var(--accent2)" id="leEta">94.5%</span></div>
+      </div>
+    </div>
+
+    <div class="explain">
+      <div class="box">
+        <h3>Conduction vs Switching Losses</h3>
+        • **Conduction Loss:** $P_{cond} = I_{rms}^2 \cdot R_{ds(on)}$. Independent of switching frequency.<br>
+        • **Switching Loss:** $P_{sw} = \frac{1}{2} V_{in} I_{out} (t_{rise} + t_{fall}) \cdot f_{sw}$. Scales linearly with $f_{sw}$.
+      </div>
+      <div class="box">
+        <h3>Voltage Ripple Trade-off</h3>
+        • Increasing $f_{sw}$ reduces output inductor/capacitor ripple size ($\Delta V \approx \frac{\Delta I_L}{8 C f_{sw}}$), but increases switching losses.
+      </div>
+    </div>
+  `;
+
+  document.getElementById('leFsw').addEventListener('input', e => {
+    state.lossEfficiency.fsw = parseInt(e.target.value);
+    document.getElementById('leFswRO').textContent = state.lossEfficiency.fsw + ' kHz';
+  });
+  document.getElementById('leRds').addEventListener('input', e => {
+    state.lossEfficiency.rdsOn = parseFloat(e.target.value);
+    document.getElementById('leRdsRO').textContent = Math.round(state.lossEfficiency.rdsOn * 1000) + ' mΩ';
+  });
+
+  document.getElementById('playBtn').addEventListener('click', e => {
+    playing = !playing;
+    e.target.textContent = playing ? '⏸ Pause' : '▶ Play';
+  });
+
+  function animateLoss(time) {
+    if (!lastTime) lastTime = time;
+    lastTime = time;
+
+    if (playing) {
+      const fsw = state.lossEfficiency.fsw;
+      const rds = state.lossEfficiency.rdsOn;
+      const pIn = 100; // 100W input
+      const iRms = 8.0; // 8A RMS current
+
+      const pCond = Math.pow(iRms, 2) * rds;
+      const pSw = 0.5 * 48 * 8.0 * (30e-9) * (fsw * 1000);
+      const pTotal = pCond + pSw + 0.5; // +0.5W core loss
+      const pOut = pIn - pTotal;
+      const eta = (pOut / pIn) * 100;
+      const ripple = (12000 / fsw);
+
+      document.getElementById('pCondText').textContent = `Pcond: ${pCond.toFixed(1)}W`;
+      document.getElementById('pSwText').textContent = `Psw: ${pSw.toFixed(1)}W`;
+      document.getElementById('pOutText').textContent = `Pout (${pOut.toFixed(1)}W)`;
+
+      document.getElementById('lePcond').textContent = `${pCond.toFixed(2)} W`;
+      document.getElementById('lePsw').textContent = `${pSw.toFixed(2)} W`;
+      document.getElementById('leRipple').textContent = `${ripple.toFixed(1)} mV`;
+      document.getElementById('leEta').textContent = `${eta.toFixed(1)}%`;
+    }
+    animFrame = requestAnimationFrame(animateLoss);
+  }
+  animFrame = requestAnimationFrame(animateLoss);
+}
+
+/* ==========================================================================
+   5. THERMAL TESTING AND HEATSINK DESIGN
+   ========================================================================= */
+function renderThermalTesting(c) {
+  c.innerHTML = `
+    <div class="panel">
+      <div class="controls">
+        <button id="playBtn" class="active">⏸ Pause</button>
+        <div class="ctrl-item">Power Dissipated (Pd)<input type="range" id="thPd" min="5" max="60" step="1" value="${state.thermalTesting.power}"><span class="readout" id="thPdRO">${state.thermalTesting.power} W</span></div>
+        <div class="ctrl-item">Heatsink Rth(h-a)<input type="range" id="thRth" min="0.5" max="10" step="0.5" value="${state.thermalTesting.rthHA}"><span class="readout" id="thRthRO">${state.thermalTesting.rthHA} °C/W</span></div>
+        <span class="phase-badge">C2R THERMAL NETWORK MODEL</span>
+      </div>
+
+      <svg viewBox="0 0 860 180">
+        <!-- Thermal Electrical Equivalent Circuit -->
+        <g transform="translate(40, 20)">
+          <!-- Die Junction -->
+          <circle cx="80" cy="70" r="30" fill="var(--panel)" stroke="var(--danger)" stroke-width="3"/>
+          <text x="80" y="65" text-anchor="middle" class="lbl" id="tjText">Tj</text>
+          <text x="80" y="80" text-anchor="middle" class="lbl-sub">Junction</text>
+
+          <line x1="110" y1="70" x2="230" y2="70" stroke="var(--wire)" stroke-width="3"/>
+          <text x="170" y="60" text-anchor="middle" class="lbl-sub">Rth(j-c): 0.8°C/W</text>
+
+          <!-- Case -->
+          <circle cx="260" cy="70" r="25" fill="var(--panel)" stroke="var(--accent)" stroke-width="3"/>
+          <text x="260" y="65" text-anchor="middle" class="lbl" id="tcText">Tc</text>
+          <text x="260" y="80" text-anchor="middle" class="lbl-sub">Case</text>
+
+          <line x1="285" y1="70" x2="410" y2="70" stroke="var(--wire)" stroke-width="3"/>
+          <text x="345" y="60" text-anchor="middle" class="lbl-sub" id="rthText">Rth(h-a)</text>
+
+          <!-- Heatsink / Ambient -->
+          <circle cx="440" cy="70" r="25" fill="var(--panel)" stroke="var(--volt)" stroke-width="3"/>
+          <text x="440" y="65" text-anchor="middle" class="lbl">Ta</text>
+          <text x="440" y="80" text-anchor="middle" class="lbl-sub">25°C Amb</text>
+        </g>
+      </svg>
+
+      <div class="readout-strip">
+        <div class="item"><span class="k">Junction Temp ($T_j$)</span><span class="v" id="thTj">91.0 °C</span></div>
+        <div class="item"><span class="k">Case Temp ($T_c$)</span><span class="v" id="thTc">75.0 °C</span></div>
+        <div class="item"><span class="k">Max Allowed $T_j$ Limit</span><span class="v" style="color:var(--danger)">150.0 °C</span></div>
+        <div class="item"><span class="k">Thermal Safety Status</span><span class="v" id="thStatus" style="color:var(--accent2)">SAFE OPERATING ZONE</span></div>
+      </div>
+    </div>
+
+    <div class="explain">
+      <div class="box">
+        <h3>Thermal Ohm's Law Analogy</h3>
+        • Heat flow $P_d$ (Watts) acts like Current ($I$).<br>
+        • Temperature Difference $\Delta T$ (°C) acts like Voltage ($V$).<br>
+        • Thermal Resistance $R_{th}$ (°C/W) acts like Resistance ($R$).<br>
+        • Total equation: $T_j = T_a + P_d \cdot (R_{th(j-c)} + R_{th(c-h)} + R_{th(h-a)})$.
+      </div>
+      <div class="box">
+        <h3>Heatsink Sizing</h3>
+        • To keep $T_j < 125^\circ\text{C}$ at maximum load, select a heatsink with $R_{th(h-a)} \le \frac{T_{j,max} - T_a}{P_d} - R_{th(j-c)}$.
+      </div>
+    </div>
+  `;
+
+  document.getElementById('thPd').addEventListener('input', e => {
+    state.thermalTesting.power = parseInt(e.target.value);
+    document.getElementById('thPdRO').textContent = state.thermalTesting.power + ' W';
+  });
+  document.getElementById('thRth').addEventListener('input', e => {
+    state.thermalTesting.rthHA = parseFloat(e.target.value);
+    document.getElementById('thRthRO').textContent = state.thermalTesting.rthHA + ' °C/W';
+  });
+
+  document.getElementById('playBtn').addEventListener('click', e => {
+    playing = !playing;
+    e.target.textContent = playing ? '⏸ Pause' : '▶ Play';
+  });
+
+  function animateThermal(time) {
+    if (!lastTime) lastTime = time;
+    lastTime = time;
+
+    if (playing) {
+      const pd = state.thermalTesting.power;
+      const rthHA = state.thermalTesting.rthHA;
+      const rthJC = 0.8;
+      const rthCH = 0.2;
+      const ta = 25.0;
+
+      const tc = ta + pd * (rthCH + rthHA);
+      const tj = ta + pd * (rthJC + rthCH + rthHA);
+
+      document.getElementById('tjText').textContent = `${Math.round(tj)}°C`;
+      document.getElementById('tcText').textContent = `${Math.round(tc)}°C`;
+
+      document.getElementById('thTj').textContent = `${tj.toFixed(1)} °C`;
+      document.getElementById('thTc').textContent = `${tc.toFixed(1)} °C`;
+
+      const statusEl = document.getElementById('thStatus');
+      if (tj > 150) {
+        statusEl.textContent = 'OVERTEMPERATURE FAILURE!';
+        statusEl.style.color = 'var(--danger)';
+      } else if (tj > 125) {
+        statusEl.textContent = 'HIGH TEMP WARNING';
+        statusEl.style.color = 'var(--accent)';
+      } else {
+        statusEl.textContent = 'SAFE OPERATING ZONE';
+        statusEl.style.color = 'var(--accent2)';
+      }
+    }
+    animFrame = requestAnimationFrame(animateThermal);
+  }
+  animFrame = requestAnimationFrame(animateThermal);
+}
+
+/* ==========================================================================
+   6. RELIABILITY TESTING OF ROBOTIC POWER MODULES
+   ========================================================================== */
+function renderReliability(c) {
+  c.innerHTML = `
+    <div class="panel">
+      <div class="controls">
+        <button id="playBtn" class="active">⏸ Pause</button>
+        <div class="ctrl-item">Thermal Cycles<input type="range" id="relTC" min="100" max="2000" step="50" value="${state.reliability.tempCycles}"><span class="readout" id="relTCRO">${state.reliability.tempCycles}</span></div>
+        <div class="ctrl-item">Vibration Profile<input type="range" id="relVib" min="1" max="20" step="1" value="${state.reliability.vibrationG}"><span class="readout" id="relVibRO">${state.reliability.vibrationG} G</span></div>
+        <span class="phase-badge">ALT / HALT STRESS TESTING MODEL</span>
+      </div>
+
+      <svg viewBox="0 0 860 160">
+        <!-- Bathtub Reliability Curve -->
+        <g transform="translate(40, 20)">
+          <text x="0" y="20" class="lbl-sub">Failure Rate (λ)</text>
+          <polyline id="relBathtub" points="" fill="none" stroke="var(--danger)" stroke-width="2.5"/>
+          <line x1="40" y1="110" x2="790" y2="110" stroke="var(--wire)" stroke-width="1.5"/>
+          <text x="100" y="130" class="lbl-sub">Infant Mortality</text>
+          <text x="400" y="130" class="lbl-sub">Useful Life (Constant λ)</text>
+          <text x="700" y="130" class="lbl-sub">Wear-out Phase</text>
+        </g>
+      </svg>
+
+      <div class="readout-strip">
+        <div class="item"><span class="k">Solder Joint Degradation</span><span class="v" id="relSolder">12% Life Used</span></div>
+        <div class="item"><span class="k">Calculated MTBF</span><span class="v" id="relMtbf">185,000 Hours</span></div>
+        <div class="item"><span class="k">FIT Rate (Failures in $10^9$h)</span><span class="v" id="relFit">5.4 FIT</span></div>
+      </div>
+    </div>
+
+    <div class="explain">
+      <div class="box">
+        <h3>Accelerated Life Testing (HALT / HASS)</h3>
+        • Robotic power modules endure severe shock, thermal cycling (e.g., $-40^\circ\text{C} \to +125^\circ\text{C}$), and multi-axis vibration.<br>
+        • **Coffin-Manson Model** predicts solder fatigue due to CTE mismatch: $N_f = A \cdot (\Delta T)^{-q}$.
+      </div>
+      <div class="box">
+        <h3>Bond Wire Heel Fatigue</h3>
+        • High peak current pulses cause cyclic thermomechanical expansion on aluminum/copper bond wires, leading to lift-off or heel cracking over time.
+      </div>
+    </div>
+  `;
+
+  document.getElementById('relTC').addEventListener('input', e => {
+    state.reliability.tempCycles = parseInt(e.target.value);
+    document.getElementById('relTCRO').textContent = state.reliability.tempCycles;
+  });
+  document.getElementById('relVib').addEventListener('input', e => {
+    state.reliability.vibrationG = parseInt(e.target.value);
+    document.getElementById('relVibRO').textContent = state.reliability.vibrationG + ' G';
+  });
+
+  document.getElementById('playBtn').addEventListener('click', e => {
+    playing = !playing;
+    e.target.textContent = playing ? '⏸ Pause' : '▶ Play';
+  });
+
+  function animateReliability(time) {
+    if (!lastTime) lastTime = time;
+    lastTime = time;
+
+    if (playing) {
+      const tc = state.reliability.tempCycles;
+      const vib = state.reliability.vibrationG;
+
+      const solderDegradation = Math.min((tc / 2000) * 100 + (vib * 1.5), 100);
+      const mtbf = Math.max(250000 - (tc * 80) - (vib * 2000), 10000);
+      const fit = (1e9 / mtbf);
+
+      document.getElementById('relSolder').textContent = `${solderDegradation.toFixed(1)}% Life Used`;
+      document.getElementById('relMtbf').textContent = `${Math.round(mtbf).toLocaleString()} Hours`;
+      document.getElementById('relFit').textContent = `${fit.toFixed(1)} FIT`;
+
+      // Plot Bathtub Curve
+      const pts = [];
+      const steps = 200;
+      for (let i = 0; i <= steps; i++) {
+        const x = 40 + (i / steps) * 750;
+        const normX = i / steps;
+        let yVal = 20;
+
+        // Infant mortality
+        if (normX < 0.2) yVal = 20 + 60 * Math.exp(-20 * normX);
+        // Useful life
+        else if (normX < 0.7) yVal = 20;
+        // Wearout
+        else yVal = 20 + 60 * Math.pow((normX - 0.7) / 0.3, 2) * (tc / 1000);
+
+        const y = 110 - yVal;
+        pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+      }
+      document.getElementById('relBathtub').setAttribute('points', pts.join(' '));
+    }
+    animFrame = requestAnimationFrame(animateReliability);
+  }
+  animFrame = requestAnimationFrame(animateReliability);
+}
+
+// Initial Load
+switchTab('controlMode');
+</script>
+</body>
+</html>
