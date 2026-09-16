@@ -1,0 +1,3489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Bidirectional DC-DC Converter - Interactive Animation</title>
+
+<style>
+
+:root{
+    --bg:#0b1120;
+    --panel:#111827;
+    --panel2:#151e31;
+    --wire:#53627d;
+    --wireOn:#38bdf8;
+    --green:#22c55e;
+    --red:#ef4444;
+    --orange:#f59e0b;
+    --blue:#38bdf8;
+    --purple:#a78bfa;
+    --text:#e5edf7;
+    --muted:#8d9ab0;
+    --node:#e5edf7;
+    --border:#26344f;
+}
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+.wrap{
+    width:96%;
+    max-width:1250px;
+    margin:auto;
+    padding:20px 0 40px;
+}
+
+header{
+    margin-bottom:15px;
+}
+
+h1{
+    margin:0;
+    font-size:28px;
+}
+
+.subtitle{
+    color:var(--muted);
+    margin-top:6px;
+    line-height:1.5;
+}
+
+.panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:15px;
+}
+
+.controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+}
+
+button{
+    background:#1c2942;
+    color:var(--text);
+    border:1px solid #334563;
+    padding:9px 15px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:700;
+}
+
+button:hover{
+    background:#293a5c;
+}
+
+button.active{
+    background:var(--orange);
+    color:#201400;
+}
+
+button.green{
+    background:#145c34;
+    border-color:#238c51;
+}
+
+button.red{
+    background:#66252c;
+}
+
+button.blue{
+    background:#174c70;
+}
+
+.control{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    color:var(--muted);
+    font-size:14px;
+}
+
+.control input[type=range]{
+    width:135px;
+    accent-color:var(--orange);
+}
+
+.readout{
+    color:var(--text);
+    font-weight:bold;
+    min-width:55px;
+}
+
+.modebar{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px;
+    margin-top:14px;
+}
+
+.badge{
+    display:inline-flex;
+    padding:7px 14px;
+    border-radius:20px;
+    font-size:13px;
+    font-weight:bold;
+    border:1px solid;
+}
+
+.badge.forward{
+    color:var(--green);
+    background:rgba(34,197,94,.12);
+    border-color:rgba(34,197,94,.45);
+}
+
+.badge.reverse{
+    color:var(--orange);
+    background:rgba(245,158,11,.12);
+    border-color:rgba(245,158,11,.45);
+}
+
+.badge.dead{
+    color:#c4b5fd;
+    background:rgba(167,139,250,.12);
+    border-color:rgba(167,139,250,.45);
+}
+
+.readoutStrip{
+    display:flex;
+    flex-wrap:wrap;
+    gap:22px;
+    margin-top:14px;
+    border-top:1px solid var(--border);
+    padding-top:14px;
+}
+
+.readItem{
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+}
+
+.readItem .key{
+    color:var(--muted);
+    font-size:12px;
+}
+
+.readItem .value{
+    font-size:17px;
+    font-weight:bold;
+}
+
+.v1{color:var(--text);}
+.v2{color:var(--blue);}
+.duty{color:var(--green);}
+.il{color:var(--orange);}
+.power{color:var(--purple);}
+
+#circuitBox{
+    background:#0d1423;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:8px;
+    margin-top:15px;
+    overflow:auto;
+}
+
+svg{
+    width:100%;
+    min-width:850px;
+    display:block;
+}
+
+.wire{
+    stroke:var(--wire);
+    stroke-width:4;
+    fill:none;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.activeWire{
+    stroke:var(--wireOn);
+    stroke-width:7;
+    fill:none;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    filter:drop-shadow(0 0 5px #38bdf8);
+}
+
+.currentPath{
+    stroke:var(--orange);
+    stroke-width:4;
+    fill:none;
+    stroke-dasharray:12 9;
+    animation:flow .65s linear infinite;
+    opacity:.95;
+}
+
+.energyPath{
+    stroke:var(--green);
+    stroke-width:6;
+    fill:none;
+    stroke-dasharray:13 8;
+    animation:flow .55s linear infinite;
+}
+
+@keyframes flow{
+    to{
+        stroke-dashoffset:-42;
+    }
+}
+
+.node{
+    fill:var(--node);
+}
+
+.nodeActive{
+    fill:var(--blue);
+    filter:drop-shadow(0 0 7px var(--blue));
+}
+
+.switch{
+    stroke-width:5;
+    stroke-linecap:round;
+}
+
+.switchOn{
+    stroke:var(--green);
+}
+
+.switchOff{
+    stroke:var(--red);
+}
+
+.component{
+    stroke:var(--wire);
+    stroke-width:4;
+    fill:none;
+}
+
+.capPlate{
+    stroke:var(--wire);
+    stroke-width:5;
+}
+
+.inductor{
+    stroke:var(--wire);
+    stroke-width:5;
+    fill:none;
+}
+
+.label{
+    fill:var(--text);
+    font-size:18px;
+    font-weight:bold;
+}
+
+.smallLabel{
+    fill:var(--muted);
+    font-size:13px;
+}
+
+.valueLabel{
+    fill:var(--blue);
+    font-size:15px;
+    font-weight:bold;
+}
+
+.currentLabel{
+    fill:var(--orange);
+    font-size:16px;
+    font-weight:bold;
+}
+
+.switchLabel{
+    fill:var(--text);
+    font-size:20px;
+    font-weight:bold;
+}
+
+.voltagePlus{
+    fill:var(--green);
+    font-size:18px;
+    font-weight:bold;
+}
+
+.voltageMinus{
+    fill:var(--red);
+    font-size:18px;
+    font-weight:bold;
+}
+
+.particle{
+    fill:var(--orange);
+    filter:drop-shadow(0 0 6px var(--orange));
+}
+
+.particleGreen{
+    fill:var(--green);
+    filter:drop-shadow(0 0 6px var(--green));
+}
+
+.explainGrid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-top:15px;
+}
+
+.explain{
+    background:#0d1423;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px;
+    line-height:1.6;
+}
+
+.explain h3{
+    margin:0 0 8px;
+    font-size:16px;
+}
+
+.explain.on{
+    border-color:rgba(34,197,94,.4);
+}
+
+.explain.off{
+    border-color:rgba(245,158,11,.4);
+}
+
+.explain.dead{
+    border-color:rgba(167,139,250,.4);
+}
+
+.equation{
+    background:#0a1020;
+    border:1px solid var(--border);
+    border-radius:9px;
+    padding:13px;
+    margin:10px 0;
+    font-family:"Times New Roman",serif;
+    font-size:21px;
+    color:#dbeafe;
+}
+
+.grid2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+.card{
+    background:#0d1423;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:15px;
+}
+
+.card h3{
+    margin-top:0;
+    color:var(--blue);
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,td{
+    border:1px solid var(--border);
+    padding:10px;
+    text-align:center;
+}
+
+th{
+    background:#19243a;
+}
+
+canvas{
+    width:100%;
+    height:250px;
+    background:#0a1020;
+    border:1px solid var(--border);
+    border-radius:9px;
+}
+
+.problem{
+    background:#0d1423;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:15px;
+    margin:12px 0;
+    line-height:1.6;
+}
+
+.solution{
+    display:none;
+    margin-top:12px;
+    background:#0c1d17;
+    border-left:5px solid var(--green);
+    padding:14px;
+    border-radius:6px;
+}
+
+.solution.show{
+    display:block;
+}
+
+.answer{
+    color:var(--green);
+    font-weight:bold;
+}
+
+input[type=number]{
+    background:#0a1020;
+    color:white;
+    border:1px solid #344563;
+    padding:8px;
+    border-radius:6px;
+    width:120px;
+}
+
+select{
+    background:#0a1020;
+    color:white;
+    border:1px solid #344563;
+    padding:8px;
+    border-radius:6px;
+}
+
+.quizOption{
+    display:block;
+    padding:9px;
+    background:#101a2d;
+    border:1px solid var(--border);
+    border-radius:6px;
+    margin:5px 0;
+    cursor:pointer;
+}
+
+.correct{
+    border-color:var(--green)!important;
+    background:#10291c!important;
+}
+
+.incorrect{
+    border-color:var(--red)!important;
+    background:#30151a!important;
+}
+
+.score{
+    margin-top:15px;
+    font-size:21px;
+    font-weight:bold;
+}
+
+.note{
+    color:var(--muted);
+    line-height:1.6;
+    font-size:14px;
+}
+
+.legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:18px;
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px solid var(--border);
+    font-size:13px;
+    color:var(--muted);
+}
+
+.legend b{
+    color:var(--text);
+}
+
+@media(max-width:750px){
+
+    .grid2,
+    .explainGrid{
+        grid-template-columns:1fr;
+    }
+
+    h1{
+        font-size:22px;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<header>
+
+<h1>Bidirectional DC–DC Converter</h1>
+
+<div class="subtitle">
+Interactive animation of a half-bridge, IGBT-based bidirectional buck/boost
+converter — matching the schematic with switches S₁ (top) and S₂ (bottom),
+each fitted with an antiparallel diode (D₁, D₂), DC-link capacitor C₁,
+energy-storage inductor L, output capacitor C₂, and four numbered
+terminals (1, 2, 3, 4). Forward Buck and Reverse Boost operation,
+S₁/S₂ switching, inductor energy transfer, current flow, PWM duty
+ratio and waveforms are all animated below.
+</div>
+
+</header>
+
+
+<!-- =====================================================
+     CONTROL PANEL
+===================================================== -->
+
+<div class="panel">
+
+<div class="controls">
+
+<button id="playBtn" class="active" onclick="togglePlay()">⏸ Pause</button>
+
+<button onclick="setDirection('forward')" id="forwardBtn">
+Forward Buck
+</button>
+
+<button onclick="setDirection('reverse')" id="reverseBtn">
+Reverse Boost
+</button>
+
+<button onclick="setPhase('s1')">
+S₁ ON
+</button>
+
+<button onclick="setPhase('s2')">
+S₂ ON
+</button>
+
+<button onclick="setPhase('dead')">
+Dead Time
+</button>
+
+<button class="red" onclick="resetAnimation()">
+Reset
+</button>
+
+<div class="control">
+Speed
+<input id="speedSlider"
+       type="range"
+       min="0.25"
+       max="3"
+       step="0.25"
+       value="1"
+       oninput="setSpeed(this.value)">
+<span class="readout" id="speedReadout">1×</span>
+</div>
+
+</div>
+
+
+<div class="controls" style="margin-top:12px;">
+
+<div class="control">
+V₁
+<input id="v1Slider"
+       type="range"
+       min="50"
+       max="200"
+       step="5"
+       value="100"
+       oninput="updateParameters()">
+<span class="readout" id="v1Readout">100 V</span>
+</div>
+
+
+<div class="control">
+V₂
+<input id="v2Slider"
+       type="range"
+       min="12"
+       max="100"
+       step="1"
+       value="48"
+       oninput="updateParameters()">
+<span class="readout" id="v2Readout">48 V</span>
+</div>
+
+
+<div class="control">
+Duty D
+<input id="dutySlider"
+       type="range"
+       min="0.05"
+       max="0.90"
+       step="0.01"
+       value="0.48"
+       oninput="updateParameters()">
+<span class="readout" id="dutyReadout">48%</span>
+</div>
+
+
+<div class="control">
+Load R
+<input id="loadSlider"
+       type="range"
+       min="5"
+       max="100"
+       step="1"
+       value="24"
+       oninput="updateParameters()">
+<span class="readout" id="loadReadout">24 Ω</span>
+</div>
+
+</div>
+
+
+<div class="modebar">
+
+<span id="modeBadge" class="badge forward">
+FORWARD BUCK
+</span>
+
+<span id="phaseBadge" class="badge forward">
+S₁ ON — INDUCTOR CHARGING
+</span>
+
+</div>
+
+
+<div class="readoutStrip">
+
+<div class="readItem">
+<span class="key">DC Bus V₁ (Terminals 1,2)</span>
+<span class="value v1" id="v1Big">100.0 V</span>
+</div>
+
+<div class="readItem">
+<span class="key">Battery/Output V₂ (Terminals 3,4)</span>
+<span class="value v2" id="v2Big">48.0 V</span>
+</div>
+
+<div class="readItem">
+<span class="key">Duty Ratio</span>
+<span class="value duty" id="dutyBig">48%</span>
+</div>
+
+<div class="readItem">
+<span class="key">Load Current</span>
+<span class="value il" id="ioutBig">2.00 A</span>
+</div>
+
+<div class="readItem">
+<span class="key">Inductor Current</span>
+<span class="value il" id="ilBig">2.00 A</span>
+</div>
+
+<div class="readItem">
+<span class="key">Power</span>
+<span class="value power" id="powerBig">96 W</span>
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     CIRCUIT
+===================================================== -->
+
+<div class="panel">
+
+<h2>Animated Power Circuit</h2>
+
+<div id="circuitBox">
+
+<svg id="mainSvg"
+     viewBox="0 0 1100 620"
+     xmlns="http://www.w3.org/2000/svg">
+
+<defs>
+
+<marker id="arrowOrange"
+        markerWidth="12"
+        markerHeight="12"
+        refX="9"
+        refY="3"
+        orient="auto">
+
+<path d="M0,0 L0,6 L10,3 Z"
+      fill="#f59e0b"/>
+
+</marker>
+
+<marker id="arrowGreen"
+        markerWidth="12"
+        markerHeight="12"
+        refX="9"
+        refY="3"
+        orient="auto">
+
+<path d="M0,0 L0,6 L10,3 Z"
+      fill="#22c55e"/>
+
+</marker>
+
+</defs>
+
+
+<!-- ================= INPUT TERMINALS ================= -->
+
+<polygon points="25,70 70,70 90,90 70,110 25,110 5,90"
+         fill="#0d1423"
+         stroke="#e5edf7"
+         stroke-width="3"/>
+
+<text x="47" y="96"
+      text-anchor="middle"
+      class="label"
+      fill="#ef4444">
+1
+</text>
+
+<text x="47" y="132"
+      text-anchor="middle"
+      class="label">
+1+
+</text>
+
+<polygon points="25,510 70,510 90,530 70,550 25,550 5,530"
+         fill="#0d1423"
+         stroke="#e5edf7"
+         stroke-width="3"/>
+
+<text x="47" y="536"
+      text-anchor="middle"
+      class="label"
+      fill="#ef4444">
+2
+</text>
+
+<text x="47" y="572"
+      text-anchor="middle"
+      class="label">
+1−
+</text>
+
+
+<!-- ================= OUTPUT TERMINALS ================= -->
+
+<polygon points="1015,270 1060,270 1080,290 1060,310 1015,310 995,290"
+         fill="#0d1423"
+         stroke="#e5edf7"
+         stroke-width="3"/>
+
+<text x="1038" y="296"
+      text-anchor="middle"
+      class="label"
+      fill="#ef4444">
+3
+</text>
+
+<text x="1038" y="332"
+      text-anchor="middle"
+      class="label">
+2+
+</text>
+
+<polygon points="1015,510 1060,510 1080,530 1060,550 1015,550 995,530"
+         fill="#0d1423"
+         stroke="#e5edf7"
+         stroke-width="3"/>
+
+<text x="1038" y="536"
+      text-anchor="middle"
+      class="label"
+      fill="#ef4444">
+4
+</text>
+
+<text x="1038" y="572"
+      text-anchor="middle"
+      class="label">
+2−
+</text>
+
+
+<!-- ================= TOP AND BOTTOM RAILS ================= -->
+
+<path id="topRail"
+      class="wire"
+      d="M90,90 H600"/>
+
+<path class="wire"
+      d="M90,530 H1010"/>
+
+
+<!-- ================= C1 ================= -->
+
+<path class="wire"
+      d="M220,90 V270"/>
+
+<line x1="190"
+      y1="270"
+      x2="250"
+      y2="270"
+      class="capPlate"/>
+
+<line x1="190"
+      y1="300"
+      x2="250"
+      y2="300"
+      class="capPlate"/>
+
+<path class="wire"
+      d="M220,300 V530"/>
+
+<text x="160"
+      y="290"
+      class="label">
+C1
+</text>
+
+<text x="255"
+      y="270"
+      class="voltagePlus">
++
+</text>
+
+<text x="255"
+      y="320"
+      class="voltageMinus">
+−
+</text>
+
+<text x="170"
+      y="350"
+      class="smallLabel">
+DC-Link Capacitor
+</text>
+
+
+<!-- ================= UPPER SWITCH S1 ================= -->
+
+<path class="wire"
+      d="M470,90 V175"/>
+
+<circle cx="470"
+        cy="175"
+        r="6"
+        class="node"/>
+
+<line id="s1Lever"
+      x1="470"
+      y1="175"
+      x2="530"
+      y2="220"
+      class="switch switchOff"/>
+
+<circle cx="530"
+        cy="225"
+        r="6"
+        class="node"/>
+
+<path class="wire"
+      d="M530,225 V300"/>
+
+<text x="435"
+      y="160"
+      class="switchLabel">
+S₁
+</text>
+
+<text x="420"
+      y="185"
+      class="smallLabel">
+Upper switch
+</text>
+
+<text x="490"
+      y="150"
+      class="smallLabel">
+a
+</text>
+
+<text x="545"
+      y="245"
+      class="smallLabel">
+k
+</text>
+
+<polygon points="390,175 390,190 412,182"
+         fill="none"
+         stroke="#8d9ab0"
+         stroke-width="2"/>
+
+<line x1="412" y1="182" x2="465" y2="180"
+      stroke="#8d9ab0"
+      stroke-width="2"/>
+
+
+<!-- ================= UPPER DIODE ================= -->
+
+<path class="wire"
+      d="M600,90 V175"/>
+
+<polygon id="d1Triangle"
+         points="580,205 620,205 600,165"
+         fill="#26344f"/>
+
+<line x1="580"
+      y1="165"
+      x2="620"
+      y2="165"
+      stroke="#53627d"
+      stroke-width="4"/>
+
+<path class="wire"
+      d="M600,205 V300"/>
+
+<text x="630"
+      y="190"
+      class="smallLabel">
+D₁
+</text>
+
+<text x="640"
+      y="148"
+      class="voltageMinus">
+−
+</text>
+
+<text x="640"
+      y="230"
+      class="voltagePlus">
++
+</text>
+
+
+<!-- ================= CENTRAL SWITCHING NODE ================= -->
+
+<path class="wire"
+      d="M530,300 H600"/>
+
+<circle id="centerNode"
+        cx="565"
+        cy="300"
+        r="8"
+        class="node"/>
+
+<text x="565"
+      y="335"
+      text-anchor="middle"
+      class="valueLabel"
+      id="vswText">
+Vsw
+</text>
+
+
+<!-- ================= LOWER SWITCH S2 ================= -->
+
+<path class="wire"
+      d="M470,530 V445"/>
+
+<circle cx="470"
+        cy="445"
+        r="6"
+        class="node"/>
+
+<line id="s2Lever"
+      x1="470"
+      y1="445"
+      x2="530"
+      y2="395"
+      class="switch switchOff"/>
+
+<circle cx="530"
+        cy="390"
+        r="6"
+        class="node"/>
+
+<path class="wire"
+      d="M530,390 V300"/>
+
+<text x="435"
+      y="465"
+      class="switchLabel">
+S₂
+</text>
+
+<text x="420"
+      y="490"
+      class="smallLabel">
+Lower switch
+</text>
+
+<text x="490"
+      y="385"
+      class="smallLabel">
+a
+</text>
+
+<text x="545"
+      y="470"
+      class="smallLabel">
+k
+</text>
+
+<polygon points="390,440 390,455 412,447"
+         fill="none"
+         stroke="#8d9ab0"
+         stroke-width="2"/>
+
+<line x1="412" y1="447" x2="465" y2="445"
+      stroke="#8d9ab0"
+      stroke-width="2"/>
+
+
+<!-- ================= LOWER DIODE ================= -->
+
+<path class="wire"
+      d="M600,530 V445"/>
+
+<polygon id="d2Triangle"
+         points="580,455 620,455 600,415"
+         fill="#26344f"/>
+
+<line x1="580"
+      y1="415"
+      x2="620"
+      y2="415"
+      stroke="#53627d"
+      stroke-width="4"/>
+
+<path class="wire"
+      d="M600,415 V300"/>
+
+<text x="630"
+      y="440"
+      class="smallLabel">
+D₂
+</text>
+
+<text x="640"
+      y="405"
+      class="voltageMinus">
+−
+</text>
+
+<text x="640"
+      y="475"
+      class="voltagePlus">
++
+</text>
+
+
+<!-- ================= INDUCTOR ================= -->
+
+<path class="wire"
+      d="M565,300 H670"/>
+
+<path id="inductorPath"
+      class="inductor"
+      d="
+      M670,300
+      q12,-35 24,0
+      q12,-35 24,0
+      q12,-35 24,0
+      q12,-35 24,0
+      q12,-35 24,0
+      "/>
+
+<path class="wire"
+      d="M766,300 H900"/>
+
+<text x="720"
+      y="265"
+      class="label">
+L
+</text>
+
+<text x="720"
+      y="285"
+      class="smallLabel">
+Energy Storage Inductor
+</text>
+
+
+<!-- ================= C2 ================= -->
+
+<path class="wire"
+      d="M900,300 V370"/>
+
+<line x1="870"
+      y1="370"
+      x2="930"
+      y2="370"
+      class="capPlate"/>
+
+<line x1="870"
+      y1="400"
+      x2="930"
+      y2="400"
+      class="capPlate"/>
+
+<path class="wire"
+      d="M900,400 V530"/>
+
+<text x="940"
+      y="390"
+      class="label">
+C2
+</text>
+
+<text x="935"
+      y="350"
+      class="voltagePlus">
++
+</text>
+
+<text x="935"
+      y="430"
+      class="voltageMinus">
+−
+</text>
+
+
+<!-- ================= OUTPUT NODE ================= -->
+
+<!-- Output wire from top of C2 -->
+<path class="wire"
+      d="M900,300 H995"/>
+
+
+<!-- ================= LOAD CONNECTION ================= -->
+
+<!-- Wire from output node down to top of load -->
+<path class="wire"
+      d="M967,300 V435"/>
+
+
+<!-- ================= LOAD RESISTOR ================= -->
+
+<rect x="945"
+      y="435"
+      width="45"
+      height="65"
+      rx="5"
+      fill="none"
+      stroke="#53627d"
+      stroke-width="4"/>
+
+<text x="967"
+      y="428"
+      text-anchor="middle"
+      class="label">
+R
+</text>
+
+<text x="967"
+      y="520"
+      text-anchor="middle"
+      class="smallLabel">
+Load
+</text>
+
+
+<!-- ================= LOAD RETURN CONNECTION ================= -->
+
+<!-- Wire from bottom of load to return/ground node -->
+<path class="wire"
+      d="M967,500 V530 H900"/>
+
+
+<!-- ================= OUTPUT TERMINAL ================= -->
+
+<circle cx="995"
+        cy="300"
+        r="5"
+        class="node"/>
+
+<text x="1005"
+      y="295"
+      class="smallLabel">
+Vout
+</text>
+
+<!-- ================= MOVING PARTICLES ================= -->
+
+<circle id="particle1"
+        r="7"
+        class="particle"/>
+
+<circle id="particle2"
+        r="7"
+        class="particle"/>
+
+<circle id="particle3"
+        r="7"
+        class="particle"/>
+
+<circle id="particle4"
+        r="7"
+        class="particle"/>
+
+<circle id="particle5"
+        r="7"
+        class="particle"/>
+
+
+<!-- ================= PATH HIGHLIGHTS ================= -->
+
+<path id="forwardChargePath"
+      class="activeWire"
+      d="
+      M90,90
+      H470
+      V175
+      L530,225
+      V300
+      H670
+      q12,-35 24,0
+      q12,-35 24,0
+      q12,-35 24,0
+      q12,-35 24,0
+      q12,-35 24,0
+      H900
+      V300
+      H995
+      "
+      opacity="0"/>
+
+
+<path id="forwardFreewheelPath"
+      class="activeWire"
+      d="
+      M565,300
+      H670
+      q12,-35 24,0
+      q12,-35 24,0
+      q12,-35 24,0
+      q12,-35 24,0
+      q12,-35 24,0
+      H900
+      V530
+      H600
+      V300
+      H565
+      "
+      opacity="0"/>
+
+
+<path id="reverseChargePath"
+      class="activeWire"
+      d="
+      M995,300
+      H900
+      H766
+      q-12,-35 -24,0
+      q-12,-35 -24,0
+      q-12,-35 -24,0
+      q-12,-35 -24,0
+      q-12,-35 -24,0
+      H565
+      H530
+      V390
+      L470,445
+      V530
+      H900
+      "
+      opacity="0"/>
+
+
+<path id="reverseDischargePath"
+      class="activeWire"
+      d="
+      M995,300
+      H900
+      H766
+      q-12,-35 -24,0
+      q-12,-35 -24,0
+      q-12,-35 -24,0
+      q-12,-35 -24,0
+      q-12,-35 -24,0
+      H565
+      H600
+      V90
+      H90
+      "
+      opacity="0"/>
+
+
+<!-- ================= CURRENT DIRECTION TEXT ================= -->
+
+<text id="currentDirection"
+      x="720"
+      y="565"
+      text-anchor="middle"
+      class="currentLabel">
+iL →
+</text>
+
+<text id="energyDirection"
+      x="720"
+      y="590"
+      text-anchor="middle"
+      class="valueLabel">
+Energy → Output
+</text>
+
+</svg>
+
+</div>
+
+<div class="legend">
+<span><b>Terminals 1, 2</b> — DC-bus port (V₁), C₁ across it</span>
+<span><b>Terminals 3, 4</b> — Battery / output port (V₂), C₂ across it</span>
+<span><b>S₁, S₂</b> — IGBTs, gate-driven, collector "a" / emitter "k"</span>
+<span><b>D₁, D₂</b> — antiparallel freewheeling diodes (cathode "−" toward the switch's collector side)</span>
+<span><b>L</b> — single energy-storage inductor shared by both directions</span>
+</div>
+
+
+<!-- ================= EXPLANATION ================= -->
+
+<div class="explainGrid">
+
+<div class="explain on">
+
+<h3 style="color:#22c55e">
+Phase 1 — S₁ ON
+</h3>
+
+<div id="phase1Text">
+
+The upper switch S₁ (collector "a" at terminal 1, emitter "k" at the
+switching node) is ON. The switching node is connected to the
+positive DC bus (terminal 1+). The inductor receives:
+
+<div class="equation">
+V<sub>L</sub> = V₁ − V₂
+</div>
+
+Therefore the inductor current rises.
+
+</div>
+
+</div>
+
+
+<div class="explain off">
+
+<h3 style="color:#f59e0b">
+Phase 2 — S₂ ON
+</h3>
+
+<div id="phase2Text">
+
+S₁ is OFF and S₂'s antiparallel diode D₂ provides the freewheeling
+path (D₂ conducts emitter-to-collector, i.e. from terminal 2− up to
+the switching node). The inductor continues supplying energy to the
+battery/output port (terminals 3, 4).
+
+<div class="equation">
+V<sub>L</sub> = −V₂
+</div>
+
+The inductor current decreases.
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     MODES
+===================================================== -->
+
+<div class="panel">
+
+<h2>Operating Modes</h2>
+
+<table>
+
+<tr>
+<th>Mode</th>
+<th>Direction</th>
+<th>S₁</th>
+<th>S₂</th>
+<th>Inductor Action</th>
+<th>Power Flow</th>
+</tr>
+
+<tr>
+<td>Mode 1</td>
+<td>Forward</td>
+<td>ON</td>
+<td>OFF</td>
+<td>Current rises</td>
+<td>V₁ → V₂</td>
+</tr>
+
+<tr>
+<td>Mode 2</td>
+<td>Forward</td>
+<td>OFF</td>
+<td>ON</td>
+<td>Current falls</td>
+<td>V₁ → V₂</td>
+</tr>
+
+<tr>
+<td>Mode 3</td>
+<td>Reverse</td>
+<td>OFF</td>
+<td>ON</td>
+<td>Energy stored in L</td>
+<td>V₂ → L</td>
+</tr>
+
+<tr>
+<td>Mode 4</td>
+<td>Reverse</td>
+<td>ON</td>
+<td>OFF</td>
+<td>Energy delivered to bus</td>
+<td>L → V₁</td>
+</tr>
+
+</table>
+
+
+<div class="grid2" style="margin-top:15px;">
+
+<div class="card">
+
+<h3>Forward Buck Mode</h3>
+
+<div class="equation">
+V₂ = D V₁
+</div>
+
+<div class="equation">
+D = V₂/V₁
+</div>
+
+<p>
+Power flows from the DC bus to the battery/load.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>Reverse Boost Mode</h3>
+
+<div class="equation">
+V₁ = V₂/(1−D)
+</div>
+
+<div class="equation">
+D = 1 − V₂/V₁
+</div>
+
+<p>
+Power flows from the battery/load toward the DC bus.
+</p>
+
+</div>
+
+</div>
+
+
+<div class="card" style="margin-top:15px;">
+
+<h3>Dead Time</h3>
+
+<p>
+A short interval is inserted between turning OFF one switch and
+turning ON the complementary switch.
+</p>
+
+<div class="equation">
+S₁ = OFF &nbsp;&nbsp;&nbsp;→&nbsp;&nbsp;&nbsp;
+DEAD TIME &nbsp;&nbsp;&nbsp;→&nbsp;&nbsp;&nbsp; S₂ = ON
+</div>
+
+<p class="note">
+Dead time prevents shoot-through, where both switches conduct
+simultaneously and effectively short the DC-link capacitor.
+</p>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     WAVEFORMS
+===================================================== -->
+
+<div class="panel">
+
+<h2>Animated PWM and Converter Waveforms</h2>
+
+<div class="controls">
+
+<div class="control">
+Waveform Duty
+<input id="waveDuty"
+       type="range"
+       min="0.05"
+       max="0.90"
+       step="0.01"
+       value="0.48"
+       oninput="drawAllWaveforms()">
+<span class="readout" id="waveDutyReadout">
+48%
+</span>
+</div>
+
+<button onclick="drawAllWaveforms()">
+Refresh Waveforms
+</button>
+
+</div>
+
+<div class="grid2">
+
+<div class="card">
+
+<h3>Gate Signal — S₁</h3>
+
+<canvas id="s1Canvas"></canvas>
+
+</div>
+
+<div class="card">
+
+<h3>Gate Signal — S₂</h3>
+
+<canvas id="s2Canvas"></canvas>
+
+</div>
+
+<div class="card">
+
+<h3>Switching Node Voltage Vsw</h3>
+
+<canvas id="vswCanvas"></canvas>
+
+</div>
+
+<div class="card">
+
+<h3>Inductor Current iL</h3>
+
+<canvas id="ilCanvas"></canvas>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     NUMERICAL PROBLEMS
+===================================================== -->
+
+<div class="panel">
+
+<h2>Numerical Problems</h2>
+
+
+<div class="problem">
+
+<h3>Problem 1 — Buck Duty Ratio</h3>
+
+<p>
+A bidirectional converter has a DC bus voltage of 100 V.
+The required battery voltage is 48 V.
+Determine the ideal duty ratio in forward buck operation.
+</p>
+
+<button onclick="toggleSolution('n1')">
+Show Solution
+</button>
+
+<div id="n1" class="solution">
+
+<div class="equation">
+D = V₂/V₁
+</div>
+
+<p>
+D = 48/100 = 0.48
+</p>
+
+<div class="answer">
+Duty ratio = 48%
+</div>
+
+</div>
+
+</div>
+
+
+<div class="problem">
+
+<h3>Problem 2 — Buck Output Voltage</h3>
+
+<p>
+A converter operates in buck mode from a 200 V DC bus.
+If D = 0.35, determine the output voltage.
+</p>
+
+<button onclick="toggleSolution('n2')">
+Show Solution
+</button>
+
+<div id="n2" class="solution">
+
+<div class="equation">
+V₂ = D V₁
+</div>
+
+<p>
+V₂ = 0.35 × 200
+</p>
+
+<div class="answer">
+V₂ = 70 V
+</div>
+
+</div>
+
+</div>
+
+
+<div class="problem">
+
+<h3>Problem 3 — Reverse Boost Duty Ratio</h3>
+
+<p>
+A battery voltage is 48 V and the DC-link voltage is 100 V.
+Determine the duty ratio required for ideal reverse boost operation.
+</p>
+
+<button onclick="toggleSolution('n3')">
+Show Solution
+</button>
+
+<div id="n3" class="solution">
+
+<div class="equation">
+D = 1 − V₂/V₁
+</div>
+
+<p>
+D = 1 − 48/100
+</p>
+
+<div class="answer">
+D = 0.52 = 52%
+</div>
+
+</div>
+
+</div>
+
+
+<div class="problem">
+
+<h3>Problem 4 — Inductor Energy</h3>
+
+<p>
+An inductor of 100 μH carries 20 A.
+Calculate the energy stored.
+</p>
+
+<button onclick="toggleSolution('n4')">
+Show Solution
+</button>
+
+<div id="n4" class="solution">
+
+<div class="equation">
+E<sub>L</sub> = ½ L i<sub>L</sub>²
+</div>
+
+<p>
+E = 0.5 × 100×10⁻⁶ × 20²
+</p>
+
+<div class="answer">
+E = 0.02 J = 20 mJ
+</div>
+
+</div>
+
+</div>
+
+
+<div class="problem">
+
+<h3>Problem 5 — Inductor Ripple Current</h3>
+
+<p>
+A buck converter has V₁ = 100 V,
+V₂ = 50 V,
+L = 100 μH and switching frequency of 20 kHz.
+Find the peak-to-peak inductor current ripple.
+</p>
+
+<button onclick="toggleSolution('n5')">
+Show Solution
+</button>
+
+<div id="n5" class="solution">
+
+<div class="equation">
+D = V₂/V₁ = 0.5
+</div>
+
+<div class="equation">
+ΔiL =
+(V₁−V₂)D/(Lf<sub>s</sub>)
+</div>
+
+<p>
+ΔiL =
+(100−50)(0.5) /
+(100×10⁻⁶×20000)
+</p>
+
+<div class="answer">
+ΔiL = 12.5 A peak-to-peak
+</div>
+
+</div>
+
+</div>
+
+
+<div class="problem">
+
+<h3>Problem 6 — Battery Current</h3>
+
+<p>
+A 48 V battery delivers 480 W.
+Determine the battery current assuming 100% efficiency.
+</p>
+
+<button onclick="toggleSolution('n6')">
+Show Solution
+</button>
+
+<div id="n6" class="solution">
+
+<div class="equation">
+I = P/V
+</div>
+
+<p>
+I = 480/48
+</p>
+
+<div class="answer">
+I = 10 A
+</div>
+
+</div>
+
+</div>
+
+
+<div class="problem">
+
+<h3>Problem 7 — Converter Efficiency</h3>
+
+<p>
+A 48 V battery transfers 1 kW to a 100 V DC bus.
+The converter efficiency is 92%.
+Determine the battery current.
+</p>
+
+<button onclick="toggleSolution('n7')">
+Show Solution
+</button>
+
+<div id="n7" class="solution">
+
+<div class="equation">
+P<sub>in</sub> = P<sub>out</sub>/η
+</div>
+
+<p>
+P<sub>in</sub> = 1000/0.92
+</p>
+
+<p>
+P<sub>in</sub> = 1086.96 W
+</p>
+
+<div class="equation">
+I<sub>battery</sub> =
+P<sub>in</sub>/V<sub>battery</sub>
+</div>
+
+<div class="answer">
+I = 22.65 A
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     CALCULATOR
+===================================================== -->
+
+<div class="panel">
+
+<h2>Interactive Design Calculator</h2>
+
+<div class="grid2">
+
+<div class="card">
+
+<h3>Buck Design</h3>
+
+<p>
+<label>V₁:</label>
+<input type="number" id="calcV1" value="100">
+V
+</p>
+
+<p>
+<label>V₂:</label>
+<input type="number" id="calcV2" value="48">
+V
+</p>
+
+<button class="blue" onclick="calcBuck()">
+Calculate
+</button>
+
+<div id="buckResult" class="answer"></div>
+
+</div>
+
+
+<div class="card">
+
+<h3>Boost Design</h3>
+
+<p>
+<label>V₁:</label>
+<input type="number" id="calcBV1" value="100">
+V
+</p>
+
+<p>
+<label>V₂:</label>
+<input type="number" id="calcBV2" value="48">
+V
+</p>
+
+<button class="blue" onclick="calcBoost()">
+Calculate
+</button>
+
+<div id="boostResult" class="answer"></div>
+
+</div>
+
+
+<div class="card">
+
+<h3>Inductor Energy</h3>
+
+<p>
+<label>L:</label>
+<input type="number" id="calcL" value="100">
+μH
+</p>
+
+<p>
+<label>I:</label>
+<input type="number" id="calcI" value="20">
+A
+</p>
+
+<button class="blue" onclick="calcEnergy()">
+Calculate
+</button>
+
+<div id="energyResult" class="answer"></div>
+
+</div>
+
+
+<div class="card">
+
+<h3>Power / Current</h3>
+
+<p>
+<label>Power:</label>
+<input type="number" id="calcP" value="1000">
+W
+</p>
+
+<p>
+<label>Voltage:</label>
+<input type="number" id="calcV" value="48">
+V
+</p>
+
+<p>
+<label>Efficiency:</label>
+<input type="number" id="calcEta" value="92">
+%
+</p>
+
+<button class="blue" onclick="calcPowerCurrent()">
+Calculate
+</button>
+
+<div id="powerResult" class="answer"></div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     QUIZ
+===================================================== -->
+
+<div class="panel">
+
+<h2>Student Quiz</h2>
+
+
+<div class="problem">
+
+<p>
+<b>1. In forward power flow, the converter behaves primarily as:</b>
+</p>
+
+<label class="quizOption">
+<input type="radio" name="q1" value="a">
+Boost converter
+</label>
+
+<label class="quizOption">
+<input type="radio" name="q1" value="b">
+Buck converter
+</label>
+
+<label class="quizOption">
+<input type="radio" name="q1" value="c">
+Flyback converter
+</label>
+
+</div>
+
+
+<div class="problem">
+
+<p>
+<b>2. Which switch is normally ON first in forward buck operation?</b>
+</p>
+
+<label class="quizOption">
+<input type="radio" name="q2" value="a">
+S₁
+</label>
+
+<label class="quizOption">
+<input type="radio" name="q2" value="b">
+S₂
+</label>
+
+<label class="quizOption">
+<input type="radio" name="q2" value="c">
+Both
+</label>
+
+</div>
+
+
+<div class="problem">
+
+<p>
+<b>3. What is the ideal buck relationship?</b>
+</p>
+
+<label class="quizOption">
+<input type="radio" name="q3" value="a">
+V₂ = V₁/D
+</label>
+
+<label class="quizOption">
+<input type="radio" name="q3" value="b">
+V₂ = DV₁
+</label>
+
+<label class="quizOption">
+<input type="radio" name="q3" value="c">
+V₂ = V₁/(1−D)
+</label>
+
+</div>
+
+
+<div class="problem">
+
+<p>
+<b>4. Why is dead time required?</b>
+</p>
+
+<label class="quizOption">
+<input type="radio" name="q4" value="a">
+To increase voltage
+</label>
+
+<label class="quizOption">
+<input type="radio" name="q4" value="b">
+To prevent shoot-through
+</label>
+
+<label class="quizOption">
+<input type="radio" name="q4" value="c">
+To increase capacitance
+</label>
+
+</div>
+
+
+<div class="problem">
+
+<p>
+<b>5. Energy stored in an inductor is:</b>
+</p>
+
+<label class="quizOption">
+<input type="radio" name="q5" value="a">
+LI
+</label>
+
+<label class="quizOption">
+<input type="radio" name="q5" value="b">
+VI
+</label>
+
+<label class="quizOption">
+<input type="radio" name="q5" value="c">
+½LI²
+</label>
+
+</div>
+
+
+<button class="green"
+        onclick="checkQuiz()">
+Check Quiz
+</button>
+
+<div id="score" class="score"></div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   GLOBAL VARIABLES
+========================================================= */
+
+let playing = true;
+
+let direction = "forward";
+
+let phase = "s1";
+
+let speed = 1;
+
+let duty = 0.48;
+
+let V1 = 100;
+
+let V2 = 48;
+
+let R = 24;
+
+let t = 0;
+
+let lastTime = null;
+
+
+/* =========================================================
+   DOM ELEMENTS
+========================================================= */
+
+const playBtn =
+document.getElementById("playBtn");
+
+const modeBadge =
+document.getElementById("modeBadge");
+
+const phaseBadge =
+document.getElementById("phaseBadge");
+
+const s1Lever =
+document.getElementById("s1Lever");
+
+const s2Lever =
+document.getElementById("s2Lever");
+
+const d1Triangle =
+document.getElementById("d1Triangle");
+
+const d2Triangle =
+document.getElementById("d2Triangle");
+
+const centerNode =
+document.getElementById("centerNode");
+
+const currentDirection =
+document.getElementById("currentDirection");
+
+const energyDirection =
+document.getElementById("energyDirection");
+
+const particleIds=[
+    "particle1",
+    "particle2",
+    "particle3",
+    "particle4",
+    "particle5"
+];
+
+const particles=
+particleIds.map(id=>document.getElementById(id));
+
+
+/* =========================================================
+   CALCULATED VALUES
+========================================================= */
+
+function outputPower(){
+
+    return V2*outputCurrent();
+
+}
+
+function outputCurrent(){
+
+    return V2/R;
+
+}
+
+function inductorCurrent(){
+
+    if(direction==="forward")
+        return outputCurrent();
+
+    return outputCurrent()/(1-duty);
+
+}
+
+
+/* =========================================================
+   UPDATE READOUTS
+========================================================= */
+
+function updateParameters(){
+
+    V1=parseFloat(
+        document.getElementById("v1Slider").value
+    );
+
+    V2=parseFloat(
+        document.getElementById("v2Slider").value
+    );
+
+    duty=parseFloat(
+        document.getElementById("dutySlider").value
+    );
+
+    R=parseFloat(
+        document.getElementById("loadSlider").value
+    );
+
+
+    document.getElementById("v1Readout").textContent=
+        V1.toFixed(0)+" V";
+
+    document.getElementById("v2Readout").textContent=
+        V2.toFixed(0)+" V";
+
+    document.getElementById("dutyReadout").textContent=
+        Math.round(duty*100)+"%";
+
+    document.getElementById("loadReadout").textContent=
+        R+" Ω";
+
+
+    document.getElementById("v1Big").textContent=
+        V1.toFixed(1)+" V";
+
+    document.getElementById("v2Big").textContent=
+        V2.toFixed(1)+" V";
+
+    document.getElementById("dutyBig").textContent=
+        Math.round(duty*100)+"%";
+
+
+    const io=outputCurrent();
+
+    document.getElementById("ioutBig").textContent=
+        io.toFixed(2)+" A";
+
+
+    document.getElementById("ilBig").textContent=
+        inductorCurrent().toFixed(2)+" A";
+
+
+    document.getElementById("powerBig").textContent=
+        outputPower().toFixed(1)+" W";
+
+}
+
+
+/* =========================================================
+   DIRECTION
+========================================================= */
+
+function setDirection(dir){
+
+    direction=dir;
+
+    if(dir==="forward"){
+
+        modeBadge.textContent=
+            "FORWARD BUCK";
+
+        modeBadge.className=
+            "badge forward";
+
+        currentDirection.textContent=
+            "iL →";
+
+        energyDirection.textContent=
+            "Energy → Output";
+
+        document.getElementById("phase1Text").innerHTML=
+        `
+        S₁ is ON and connects the DC bus to the inductor.
+        The inductor voltage is:
+        <div class="equation">
+        V<sub>L</sub> = V₁ − V₂
+        </div>
+        Therefore the inductor current rises.
+        `;
+
+        document.getElementById("phase2Text").innerHTML=
+        `
+        S₁ is OFF. S₂'s antiparallel diode D₂ now conducts
+        (S₂'s own channel stays idle), freewheeling the inductor
+        current to the output.
+        <div class="equation">
+        V<sub>L</sub> = −V₂
+        </div>
+        The inductor current falls.
+        `;
+
+    }else{
+
+        modeBadge.textContent=
+            "REVERSE BOOST";
+
+        modeBadge.className=
+            "badge reverse";
+
+        currentDirection.textContent=
+            "← iL";
+
+        energyDirection.textContent=
+            "Energy → DC Bus";
+
+        document.getElementById("phase1Text").innerHTML=
+        `
+        S₂ is ON.
+        The battery/output side drives current through L and S₂.
+        The inductor stores energy.
+        <div class="equation">
+        E<sub>L</sub> = ½Li<sub>L</sub>²
+        </div>
+        `;
+
+        document.getElementById("phase2Text").innerHTML=
+        `
+        S₂ turns OFF. S₁'s antiparallel diode D₁ now conducts
+        (S₁'s own channel stays idle), carrying the inductor's
+        stored energy up into the DC bus.
+        <div class="equation">
+        V<sub>L</sub> = V₂ − V₁
+        </div>
+        This is the boost energy-transfer interval, via D₁.
+        `;
+    }
+
+    updateParameters();
+
+}
+
+
+/* =========================================================
+   PHASE CONTROL
+========================================================= */
+
+function setPhase(p){
+
+    phase=p;
+
+    function resetVisuals(){
+
+        s1Lever.classList.remove("switchOn","switchOff");
+        s2Lever.classList.remove("switchOn","switchOff");
+
+        s1Lever.setAttribute("stroke","");
+        s2Lever.setAttribute("stroke","");
+
+        d1Triangle.setAttribute("fill","#26344f");
+        d2Triangle.setAttribute("fill","#26344f");
+
+    }
+
+
+    if(p==="s1"){
+
+        /* lever geometry: S1 branch shown closed for this gate slot */
+
+        s1Lever.setAttribute("x2","470");
+        s1Lever.setAttribute("y2","225");
+
+        s2Lever.setAttribute("x2","530");
+        s2Lever.setAttribute("y2","395");
+
+        resetVisuals();
+
+        if(direction==="forward"){
+
+            /* Forward + S1 slot: S1 switch actively conducts */
+
+            s1Lever.classList.add("switchOn");
+            s2Lever.classList.add("switchOff");
+
+            phaseBadge.textContent=
+                "S₁ ON — INDUCTOR CHARGING (current through switch S₁)";
+
+            phaseBadge.className=
+                "badge forward";
+
+        }else{
+
+            /* Reverse + S1 slot: S1 channel is idle, D1 diode carries
+               the discharge current from L up to the DC bus */
+
+            s1Lever.classList.add("switchOff");
+            s2Lever.classList.add("switchOff");
+
+            d1Triangle.setAttribute("fill","#38bdf8");
+
+            phaseBadge.textContent=
+                "D₁ CONDUCTING — ENERGY TO DC BUS (freewheel diode, S₁ idle)";
+
+            phaseBadge.className=
+                "badge forward";
+
+        }
+
+    }
+
+
+    if(p==="s2"){
+
+        s1Lever.setAttribute("x2","530");
+        s1Lever.setAttribute("y2","220");
+
+        s2Lever.setAttribute("x2","470");
+        s2Lever.setAttribute("y2","390");
+
+        resetVisuals();
+
+        if(direction==="forward"){
+
+            /* Forward + S2 slot: S1 is OFF, S2 channel is idle,
+               D2 diode freewheels the inductor current */
+
+            s1Lever.classList.add("switchOff");
+            s2Lever.classList.add("switchOff");
+
+            d2Triangle.setAttribute("fill","#38bdf8");
+
+            phaseBadge.textContent=
+                "D₂ CONDUCTING — FREEWHEELING (diode, S₂ idle)";
+
+            phaseBadge.className=
+                "badge reverse";
+
+        }else{
+
+            /* Reverse + S2 slot: S2 switch actively conducts,
+               storing energy in L */
+
+            s2Lever.classList.add("switchOn");
+            s1Lever.classList.add("switchOff");
+
+            phaseBadge.textContent=
+                "S₂ ON — INDUCTOR ENERGY STORAGE (current through switch S₂)";
+
+            phaseBadge.className=
+                "badge reverse";
+
+        }
+
+    }
+
+
+    if(p==="dead"){
+
+        resetVisuals();
+
+        s1Lever.setAttribute(
+            "stroke","#a78bfa"
+        );
+
+        s2Lever.setAttribute(
+            "stroke","#a78bfa"
+        );
+
+        phaseBadge.textContent=
+            "DEAD TIME — BOTH SWITCHES OFF";
+
+        phaseBadge.className=
+            "badge dead";
+
+        return;
+
+    }
+
+}
+
+
+/* =========================================================
+   PLAY / PAUSE
+========================================================= */
+
+function togglePlay(){
+
+    playing=!playing;
+
+    playBtn.textContent=
+        playing ? "⏸ Pause" : "▶ Play";
+
+    playBtn.className=
+        playing ? "active" : "";
+
+}
+
+
+/* =========================================================
+   SPEED
+========================================================= */
+
+function setSpeed(v){
+
+    speed=parseFloat(v);
+
+    document.getElementById(
+        "speedReadout"
+    ).textContent=speed+"×";
+
+}
+
+
+/* =========================================================
+   RESET
+========================================================= */
+
+function resetAnimation(){
+
+    t=0;
+
+    direction="forward";
+
+    setDirection("forward");
+
+    setPhase("s1");
+
+}
+
+
+/* =========================================================
+   SVG PATH CREATION
+========================================================= */
+
+function createPath(d){
+
+    const p=
+    document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "path"
+    );
+
+    p.setAttribute("d",d);
+
+    p.setAttribute("fill","none");
+
+    return p;
+
+}
+
+
+/*
+Forward current path:
+V1+ → S1 → L → V2+ → return through load
+*/
+const forwardPath=createPath(`
+M90,90
+H470
+V175
+L530,225
+V300
+H565
+H670
+q12,-35 24,0
+q12,-35 24,0
+q12,-35 24,0
+q12,-35 24,0
+q12,-35 24,0
+H900
+V300
+H995
+`);
+
+
+/*
+Forward freewheel:
+center → L → C2/output node → bottom rail → UP THROUGH D2 (diode) → center
+This is the correct physical path: with S1 OFF, the inductor current
+continues flowing and returns via the antiparallel diode D2, not
+through the S2 switch channel.
+*/
+const forwardFreewheel=createPath(`
+M565,300
+H670
+q12,-35 24,0
+q12,-35 24,0
+q12,-35 24,0
+q12,-35 24,0
+q12,-35 24,0
+H900
+V530
+H600
+V300
+H565
+`);
+
+
+/*
+Reverse charging:
+V2+ → L → S2 → bottom → V2-
+*/
+const reverseCharge=createPath(`
+M995,300
+H900
+H766
+q-12,-35 -24,0
+q-12,-35 -24,0
+q-12,-35 -24,0
+q-12,-35 -24,0
+q-12,-35 -24,0
+H565
+H530
+V390
+L470,445
+V530
+H900
+`);
+
+
+/*
+Reverse discharge:
+output/battery (3+) → L (reversed) → center → UP THROUGH D1 (diode) → DC bus (1+)
+With S2 OFF, the inductor releases its stored energy through the
+antiparallel diode D1 into the DC bus — not through the S1 switch
+channel.
+*/
+const reverseDischarge=createPath(`
+M995,300
+H900
+H766
+q-12,-35 -24,0
+q-12,-35 -24,0
+q-12,-35 -24,0
+q-12,-35 -24,0
+q-12,-35 -24,0
+H565
+H600
+V90
+H90
+`);
+
+
+/* =========================================================
+   PARTICLE MOVEMENT
+========================================================= */
+
+function pointOnPath(path,frac){
+
+    const len=path.getTotalLength();
+
+    return path.getPointAtLength(
+        ((frac%1)+1)%1*len
+    );
+
+}
+
+
+function updateParticles(path,frac){
+
+    particles.forEach(function(p,i){
+
+        const pt=
+        pointOnPath(
+            path,
+            frac+(i*0.18)
+        );
+
+        p.setAttribute(
+            "cx",
+            pt.x
+        );
+
+        p.setAttribute(
+            "cy",
+            pt.y
+        );
+
+    });
+
+}
+
+
+/* =========================================================
+   ANIMATION FRAME
+========================================================= */
+
+function animationFrame(now){
+
+    if(lastTime===null)
+        lastTime=now;
+
+    const dt=now-lastTime;
+
+    lastTime=now;
+
+
+    if(playing){
+
+        t+=
+        (dt/2800)*
+        speed;
+
+        if(t>=1)
+            t=t%1;
+
+    }
+
+
+    /*
+    PWM phase.
+    Forward:
+       S1 ON during duty
+       S2 ON during remaining interval
+
+    Reverse:
+       S2 ON during duty
+       S1 ON during remaining interval
+    */
+
+    const pwmOn=t<duty;
+
+
+    if(direction==="forward"){
+
+        if(pwmOn){
+
+            phase="s1";
+
+            setPhase("s1");
+
+            updateParticles(
+                forwardPath,
+                t/duty
+            );
+
+        }else{
+
+            phase="s2";
+
+            setPhase("s2");
+
+            updateParticles(
+                forwardFreewheel,
+                (t-duty)/(1-duty)
+            );
+
+        }
+
+    }else{
+
+        if(pwmOn){
+
+            phase="s2";
+
+            setPhase("s2");
+
+            updateParticles(
+                reverseCharge,
+                t/duty
+            );
+
+        }else{
+
+            phase="s1";
+
+            setPhase("s1");
+
+            updateParticles(
+                reverseDischarge,
+                (t-duty)/(1-duty)
+            );
+
+        }
+
+    }
+
+
+    /*
+    Switching node voltage
+    */
+
+    let vsw;
+
+    if(direction==="forward"){
+
+        vsw=pwmOn ? V1 : 0;
+
+    }else{
+
+        /*
+        During reverse boost:
+        S2 ON → switching node approximately 0
+        S1 ON → switching node approximately V1
+        */
+
+        vsw=pwmOn ? 0 : V1;
+
+    }
+
+
+    document.getElementById(
+        "vswText"
+    ).textContent=
+        "Vsw ≈ "+vsw.toFixed(1)+" V";
+
+
+    centerNode.classList.toggle(
+        "nodeActive",
+        pwmOn
+    );
+
+
+    requestAnimationFrame(
+        animationFrame
+    );
+
+}
+
+
+/* =========================================================
+   WAVEFORM DRAWING
+========================================================= */
+
+function setupCanvas(canvas){
+
+    const rect=
+        canvas.getBoundingClientRect();
+
+    const dpr=
+        window.devicePixelRatio || 1;
+
+    canvas.width=
+        rect.width*dpr;
+
+    canvas.height=
+        rect.height*dpr;
+
+    const ctx=
+        canvas.getContext("2d");
+
+    ctx.scale(dpr,dpr);
+
+    return {
+        ctx:ctx,
+        w:rect.width,
+        h:rect.height
+    };
+
+}
+
+
+function drawBase(ctx,w,h){
+
+    ctx.strokeStyle="#53627d";
+
+    ctx.lineWidth=1;
+
+    ctx.beginPath();
+
+    ctx.moveTo(45,15);
+    ctx.lineTo(45,h-35);
+    ctx.lineTo(w-15,h-35);
+
+    ctx.stroke();
+
+
+    ctx.strokeStyle="#1e293b";
+
+    for(let y=40;y<h-35;y+=40){
+
+        ctx.beginPath();
+
+        ctx.moveTo(45,y);
+        ctx.lineTo(w-15,y);
+
+        ctx.stroke();
+
+    }
+
+}
+
+
+function drawGate(canvasId,isS1){
+
+    const canvas=
+        document.getElementById(canvasId);
+
+    const obj=
+        setupCanvas(canvas);
+
+    const ctx=obj.ctx;
+
+    const w=obj.w;
+
+    const h=obj.h;
+
+    drawBase(ctx,w,h);
+
+
+    const D=
+        parseFloat(
+            document.getElementById(
+                "waveDuty"
+            ).value
+        );
+
+
+    ctx.strokeStyle="#22c55e";
+
+    ctx.lineWidth=3;
+
+    ctx.beginPath();
+
+
+    const cycles=5;
+
+    const usableW=w-70;
+
+    for(let c=0;c<cycles;c++){
+
+        const x0=
+            45+c*usableW/cycles;
+
+        const period=
+            usableW/cycles;
+
+        let high;
+
+        if(isS1)
+            high=D*period;
+        else
+            high=(1-D)*period;
+
+
+        ctx.moveTo(x0,75);
+
+        ctx.lineTo(x0+high,75);
+
+        ctx.lineTo(x0+high,190);
+
+        ctx.lineTo(x0+period,190);
+
+    }
+
+    ctx.stroke();
+
+
+    ctx.fillStyle="#e5edf7";
+
+    ctx.font="12px Arial";
+
+    ctx.fillText(
+        "ON",
+        50,
+        65
+    );
+
+    ctx.fillText(
+        "OFF",
+        50,
+        210
+    );
+
+}
+
+
+function drawSwitchNode(){
+
+    const canvas=
+        document.getElementById(
+            "vswCanvas"
+        );
+
+    const obj=
+        setupCanvas(canvas);
+
+    const ctx=obj.ctx;
+
+    const w=obj.w;
+
+    const h=obj.h;
+
+    drawBase(ctx,w,h);
+
+
+    const D=
+        parseFloat(
+            document.getElementById(
+                "waveDuty"
+            ).value
+        );
+
+
+    ctx.strokeStyle="#38bdf8";
+
+    ctx.lineWidth=3;
+
+    ctx.beginPath();
+
+
+    const cycles=5;
+
+    const usableW=w-70;
+
+
+    for(let c=0;c<cycles;c++){
+
+        const x0=
+            45+c*usableW/cycles;
+
+        const period=
+            usableW/cycles;
+
+        const high=
+            D*period;
+
+
+        ctx.moveTo(x0,55);
+
+        ctx.lineTo(x0+high,55);
+
+        ctx.lineTo(x0+high,190);
+
+        ctx.lineTo(x0+period,190);
+
+    }
+
+    ctx.stroke();
+
+
+    ctx.fillStyle="#8d9ab0";
+
+    ctx.font="12px Arial";
+
+    ctx.fillText(
+        "V₁",
+        48,
+        48
+    );
+
+    ctx.fillText(
+        "0",
+        48,
+        205
+    );
+
+}
+
+
+function drawInductorCurrent(){
+
+    const canvas=
+        document.getElementById(
+            "ilCanvas"
+        );
+
+    const obj=
+        setupCanvas(canvas);
+
+    const ctx=obj.ctx;
+
+    const w=obj.w;
+
+    const h=obj.h;
+
+    drawBase(ctx,w,h);
+
+
+    const D=
+        parseFloat(
+            document.getElementById(
+                "waveDuty"
+            ).value
+        );
+
+
+    ctx.strokeStyle="#f59e0b";
+
+    ctx.lineWidth=3;
+
+    ctx.beginPath();
+
+
+    const cycles=5;
+
+    const usableW=w-70;
+
+
+    for(let c=0;c<cycles;c++){
+
+        const x0=
+            45+c*usableW/cycles;
+
+        const period=
+            usableW/cycles;
+
+        const high=
+            D*period;
+
+
+        const mid=120;
+
+        const top=65;
+
+        const bottom=180;
+
+
+        ctx.moveTo(
+            x0,
+            bottom
+        );
+
+        ctx.lineTo(
+            x0+high,
+            top
+        );
+
+        ctx.lineTo(
+            x0+period,
+            bottom
+        );
+
+    }
+
+    ctx.stroke();
+
+
+    ctx.fillStyle="#8d9ab0";
+
+    ctx.font="12px Arial";
+
+    ctx.fillText(
+        "iL max",
+        50,
+        55
+    );
+
+    ctx.fillText(
+        "iL min",
+        50,
+        205
+    );
+
+}
+
+
+function drawAllWaveforms(){
+
+    const D=
+        parseFloat(
+            document.getElementById(
+                "waveDuty"
+            ).value
+        );
+
+
+    document.getElementById(
+        "waveDutyReadout"
+    ).textContent=
+        Math.round(D*100)+"%";
+
+
+    drawGate(
+        "s1Canvas",
+        true
+    );
+
+    drawGate(
+        "s2Canvas",
+        false
+    );
+
+    drawSwitchNode();
+
+    drawInductorCurrent();
+
+}
+
+
+window.addEventListener(
+    "resize",
+    drawAllWaveforms
+);
+
+
+/* =========================================================
+   SOLUTIONS
+========================================================= */
+
+function toggleSolution(id){
+
+    const el=
+        document.getElementById(id);
+
+    el.classList.toggle("show");
+
+}
+
+
+/* =========================================================
+   CALCULATOR
+========================================================= */
+
+function calcBuck(){
+
+    const v1=
+        parseFloat(
+            document.getElementById(
+                "calcV1"
+            ).value
+        );
+
+    const v2=
+        parseFloat(
+            document.getElementById(
+                "calcV2"
+            ).value
+        );
+
+
+    if(v1<=0){
+
+        return;
+
+    }
+
+
+    const D=v2/v1;
+
+
+    document.getElementById(
+        "buckResult"
+    ).innerHTML=
+    `
+    Duty Ratio = ${D.toFixed(4)}
+    <br>
+    Duty Ratio = ${(D*100).toFixed(2)}%
+    <br>
+    <br>
+    V₂ = DV₁
+    `;
+
+}
+
+
+function calcBoost(){
+
+    const v1=
+        parseFloat(
+            document.getElementById(
+                "calcBV1"
+            ).value
+        );
+
+    const v2=
+        parseFloat(
+            document.getElementById(
+                "calcBV2"
+            ).value
+        );
+
+
+    const D=
+        1-(v2/v1);
+
+
+    document.getElementById(
+        "boostResult"
+    ).innerHTML=
+    `
+    Duty Ratio = ${D.toFixed(4)}
+    <br>
+    Duty Ratio = ${(D*100).toFixed(2)}%
+    <br>
+    <br>
+    D = 1 − V₂/V₁
+    `;
+
+}
+
+
+function calcEnergy(){
+
+    const L=
+        parseFloat(
+            document.getElementById(
+                "calcL"
+            ).value
+        )*1e-6;
+
+    const I=
+        parseFloat(
+            document.getElementById(
+                "calcI"
+            ).value
+        );
+
+
+    const E=
+        .5*L*I*I;
+
+
+    document.getElementById(
+        "energyResult"
+    ).innerHTML=
+    `
+    Energy = ${E.toFixed(6)} J
+    <br>
+    Energy = ${(E*1000).toFixed(3)} mJ
+    <br>
+    <br>
+    E = ½LI²
+    `;
+
+}
+
+
+function calcPowerCurrent(){
+
+    const P=
+        parseFloat(
+            document.getElementById(
+                "calcP"
+            ).value
+        );
+
+    const V=
+        parseFloat(
+            document.getElementById(
+                "calcV"
+            ).value
+        );
+
+    const eta=
+        parseFloat(
+            document.getElementById(
+                "calcEta"
+            ).value
+        )/100;
+
+
+    const Pin=P/eta;
+
+    const I=Pin/V;
+
+
+    document.getElementById(
+        "powerResult"
+    ).innerHTML=
+    `
+    Input Power = ${Pin.toFixed(2)} W
+    <br>
+    Input Current = ${I.toFixed(3)} A
+    <br>
+    <br>
+    I = P/(ηV)
+    `;
+
+}
+
+
+/* =========================================================
+   QUIZ
+========================================================= */
+
+function checkQuiz(){
+
+    const answers={
+        q1:"b",
+        q2:"a",
+        q3:"b",
+        q4:"b",
+        q5:"c"
+    };
+
+
+    let score=0;
+
+
+    for(const q in answers){
+
+        const selected=
+            document.querySelector(
+                'input[name="'+q+'"]:checked'
+            );
+
+
+        document.querySelectorAll(
+            'input[name="'+q+'"]'
+        ).forEach(function(input){
+
+            input.parentElement.classList.remove(
+                "correct",
+                "incorrect"
+            );
+
+
+            if(
+                input.value===
+                answers[q]
+            ){
+
+                input.parentElement.classList.add(
+                    "correct"
+                );
+
+            }
+
+        });
+
+
+        if(selected){
+
+            if(
+                selected.value===
+                answers[q]
+            ){
+
+                score++;
+
+            }else{
+
+                selected.parentElement.classList.add(
+                    "incorrect"
+                );
+
+            }
+
+        }
+
+    }
+
+
+    document.getElementById(
+        "score"
+    ).textContent=
+        "Score: "+score+" / 5";
+
+
+}
+
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+
+updateParameters();
+
+setDirection("forward");
+
+setPhase("s1");
+
+drawAllWaveforms();
+
+requestAnimationFrame(
+    animationFrame
+);
+
+</script>
+
+</body>
+</html>
